@@ -22,7 +22,7 @@ In addition, we provide simple wrappers to merge datamodules or datasets.
 
 ## Configurations
 
-The root folder(s) must be indicated in the [configuration file](config.yaml) (which is also the list of all datasets maintened in this library so far). 
+The root folder(s) must be indicated in the [configuration file](config/config.yaml) (which is also the list of all datasets maintened in this library so far). 
 They can then be called directly in your code:
 
 ```python
