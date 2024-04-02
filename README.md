@@ -3,16 +3,16 @@
 
 # The Fundus Data Toolkit
 
-This library provides a simple common interface to interact with the datastructures of different publicly available fundus datasets.
+This library provides a simple common interface to interact with the structures of different publicly available fundus databases.
 
 
 ## Datasets and DataModules
 
 Internally, we separate the concepts of Datasets, Datadoaders and Datamodules.
 
-    * Datasets are [nntools.Datasets](https://github.com/ClementPla/NNTools/blob/main/src/nntools/dataset/abstract_image_dataset.py) children, which all inherit from the PyTorch's dataset.
-    * [Dataloaders](https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader) are wrappers around datasets to create batches of samples taken from one dataset
-    * [Datamodule](https://lightning.ai/docs/pytorch/stable/data/datamodule.html) is a convenience container used to create and store the typical train/val/test splits. 
+    - Datasets come from the [nntools library](https://github.com/ClementPla/NNTools/blob/main/src/nntools/dataset/abstract_image_dataset.py) but are in the end simply inherited from the PyTorch's dataset with a bunch of conveniance functions.
+    - [Dataloaders](https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader) are wrappers around datasets to create batches of samples taken from one dataset
+    - [Datamodule](https://lightning.ai/docs/pytorch/stable/data/datamodule.html) is a convenience container used to create and store the typical train/val/test splits. 
 
 When the train/val/test splits already exist in the original databases, we maintain them. Most of the time, there is only two out three provided (train/val or train/test).  If train/val is provided, we consider val as test.
 
