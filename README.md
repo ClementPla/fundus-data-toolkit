@@ -28,7 +28,8 @@ They can then be called directly in your code:
 ```python
 from fundusData.datamodules.classification import IDRiDDataModule
 from fundusData.datamodules import CLASSIF_PATHS, SEG_PATHS
-idrid_datamodule = IDRiDDataModule(CLASSIF_PATHS.IDRID, img_size=img_size, batch_size=8).setup_all()
+idrid_datamodule = IDRiDDataModule(CLASSIF_PATHS.IDRID, img_size=img_size, batch_size=8)
+idrid_datamodule.setup_all()  # Create the train/val/test splits, either from existing splits or from the argments provided to the datamodule
 ```
 
 ## Installation
