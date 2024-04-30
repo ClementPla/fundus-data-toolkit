@@ -16,17 +16,16 @@ from fundus_data_toolkit.data_aug import DAType
 
 
 class FundusDatamodule(LightningDataModule):
-
     def __init__(
         self,
         img_size: Union[int, List[int]],
         batch_size: int,
-        valid_size: Optional[Union[int, float]]=None,
-        num_workers: int=4,
-        use_cache:bool=False,
-        persistent_workers:bool=True,
+        valid_size: Optional[Union[int, float]] = None,
+        num_workers: int = 4,
+        use_cache: bool = False,
+        persistent_workers: bool = True,
         data_augmentation_type: Optional[DAType] = None,
-        **dataset_kwargs
+        **dataset_kwargs,
     ):
         super().__init__()
         self.img_size = img_size
@@ -40,25 +39,23 @@ class FundusDatamodule(LightningDataModule):
             self.num_workers = os.cpu_count() // torch.cuda.device_count()
         else:
             self.num_workers = num_workers
-        
+
         self.train: Union[D.ClassificationDataset, D.SegmentationDataset] = None
         self.val: Union[D.ClassificationDataset, D.SegmentationDataset] = None
         self.test: Union[D.ClassificationDataset, D.SegmentationDataset] = None
         self.dataset_kwargs = dataset_kwargs
         self.dataset_kwargs["use_cache"] = use_cache
 
-        
-        self.pre_resize = []        
+        self.pre_resize = []
         self.post_resize_pre_cache = []
         self.post_resize_post_cache = []
-        
-        
+
     def setup_all(self):
         self.setup("fit")
         self.setup("validate")
         self.setup("test")
         return self
-    
+
     def set_classes_filter(self):
         if self.filter_classes is not None:
             if self.train:
@@ -70,45 +67,47 @@ class FundusDatamodule(LightningDataModule):
 
     def create_valid_set(self):
         if self.train and self.val is None and self.valid_size:
-
             if isinstance(self.valid_size, float):
                 self.valid_size = int(len(self.train) * self.valid_size)
 
             val_length = self.valid_size
             train_length = len(self.train) - val_length
-            self.train, self.val = random_split(self.train, [train_length, val_length])
+            self.train, self.val = random_split(
+                self.train, [train_length, val_length], generator=torch.Generator().manual_seed(42)
+            )
+            self.train.id = self.train.id.replace("_split_0", "_split_train")
+            self.val.id = self.val.id.replace("_split_1", "_split_val")
 
     @property
     def class_weights(self) -> torch.Tensor:
         if self.train is None:
             raise ValueError("Train dataset is not created yet.")
-        
+
         return torch.Tensor(class_weighting(self.train.get_class_count()))
-    
+
     @property
     def class_count(self) -> List[int]:
         if self.train is None:
             raise ValueError("Train dataset is not created yet.")
-        
-        return self.train.get_class_count()
-    
-    
-    def img_size_ops(self) -> A.Compose:
 
-        return A.Compose([
-            A.LongestMaxSize(max_size=self.img_size, always_apply=True),
-            A.PadIfNeeded(
-                min_height=self.img_size[0],
-                min_width=self.img_size[1],
-                always_apply=True,
-                border_mode=cv2.BORDER_CONSTANT,
-            )
-        ])
+        return self.train.get_class_count()
+
+    def img_size_ops(self) -> A.Compose:
+        return A.Compose(
+            [
+                A.LongestMaxSize(max_size=self.img_size, always_apply=True),
+                A.PadIfNeeded(
+                    min_height=self.img_size[0],
+                    min_width=self.img_size[1],
+                    always_apply=True,
+                    border_mode=cv2.BORDER_CONSTANT,
+                ),
+            ]
+        )
 
     def normalize_and_cast_op(self):
         mean, std = get_normalization()
-        return A.Compose([A.Normalize(mean=mean, std=std, always_apply=True), 
-                          ToTensorV2()])
+        return A.Compose([A.Normalize(mean=mean, std=std, always_apply=True), ToTensorV2()])
 
     def train_dataloader(self) -> DataLoader:
         if self.train is None:
@@ -137,17 +136,20 @@ class FundusDatamodule(LightningDataModule):
     def test_dataloader(self, shuffle=False) -> Union[DataLoader, List[DataLoader]]:
         if self.test is None:
             raise ValueError("Test dataset is not created yet.")
-        
+
         if isinstance(self.test, list):
-            return [DataLoader(
-                ds,
-                batch_size=self.batch_size,
-                num_workers=self.num_workers,
-                shuffle=shuffle,
-                persistent_workers=False,
-                pin_memory=True,
-            ) for ds in self.test]
-        
+            return [
+                DataLoader(
+                    ds,
+                    batch_size=self.batch_size,
+                    num_workers=self.num_workers,
+                    shuffle=shuffle,
+                    persistent_workers=False,
+                    pin_memory=True,
+                )
+                for ds in self.test
+            ]
+
         return DataLoader(
             self.test,
             batch_size=self.batch_size,
@@ -156,5 +158,3 @@ class FundusDatamodule(LightningDataModule):
             persistent_workers=False,
             pin_memory=True,
         )
-    
-

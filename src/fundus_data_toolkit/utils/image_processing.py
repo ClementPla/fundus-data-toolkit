@@ -29,7 +29,7 @@ def fundus_autocrop(image: np.ndarray):
 def fundus_precise_autocrop(image:np.ndarray):
     h, w, c = image.shape
     img = image[:,:,0]
-    threshold = 10
+    threshold = 50
     _, img = cv2.threshold(img, threshold, 1, cv2.THRESH_BINARY)
     img = img.astype(np.uint8) * 255
     param1 = 15
@@ -39,10 +39,12 @@ def fundus_precise_autocrop(image:np.ndarray):
         2,
         min(h, w) // 8,
         param1=param1,
-        param2=0.9,
+        param2=10,
         minRadius=int(min(h, w) // 4),
         maxRadius=int(max(h, w)//2),
     )
+    if circles is None:
+        return fundus_autocrop(image=image)
     mask = np.zeros_like(img)
     circle = np.uint16(np.around(circles))[0, 0]
     mask = (cv2.circle(mask, (circle[0], circle[1]), circle[2], 1, -1) > 0 ).astype(np.uint8)

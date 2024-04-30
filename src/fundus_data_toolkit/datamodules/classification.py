@@ -11,7 +11,7 @@ from fundus_data_toolkit.datasets.classification import (
     get_EyePACS_dataset,
     get_IDRiD_dataset,
 )
-from fundus_data_toolkit.utils.image_processing import fundus_autocrop
+from fundus_data_toolkit.utils.image_processing import fundus_autocrop, fundus_precise_autocrop
 
 
 class FundusClassificationDatamodule(FundusDatamodule):
@@ -19,12 +19,15 @@ class FundusClassificationDatamodule(FundusDatamodule):
                  valid_size=None, 
                  num_workers=4, 
                  use_cache=False, 
-                 persistent_workers=True, filter_classes=None, **dataset_kwargs):
+                 persistent_workers=True, filter_classes=None,
+                 precise_autocrop: bool = False,
+                 **dataset_kwargs):
         super().__init__(img_size, batch_size, valid_size, num_workers, use_cache, persistent_workers, **dataset_kwargs)
 
         self.data_dir = data_dir
         self.filter_classes = filter_classes
-    
+        self.precise_autocrop = precise_autocrop
+        
     def data_aug_ops(self) -> Union[List[Composition], List[None]]:
         if self.da_type is None:
             return []
@@ -32,16 +35,17 @@ class FundusClassificationDatamodule(FundusDatamodule):
     
     def finalize_composition(self):
         test_composer = Composition()
-        test_composer.add(fundus_autocrop, 
+        autocrop = fundus_precise_autocrop if self.precise_autocrop else fundus_autocrop            
+        test_composer.add(autocrop, 
                           *self.pre_resize, 
                           self.img_size_ops(), 
-                          *self.post_resize_post_cache, 
+                          *self.post_resize_pre_cache, 
                           CacheBullet(),
                           *self.post_resize_post_cache, 
                           self.normalize_and_cast_op())
         
         train_composer = Composition()
-        train_composer.add(fundus_autocrop, 
+        train_composer.add(autocrop, 
                            *self.pre_resize, 
                            self.img_size_ops(), 
                            *self.post_resize_post_cache, 
