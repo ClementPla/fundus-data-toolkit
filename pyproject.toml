@@ -1,5 +1,5 @@
 [project]
-name = "FundusDatamoduleToolkit"
+name = "fundus_data_toolkit"
 version = "0.1.0"
 description = "A simple interface for creating datamodules from publicly available fundus datasets"
 dependencies = [
@@ -36,5 +36,6 @@ select = ["E", "F", "I", "RUF", "TCH"]
 fixable = ["I", "RUF100", "TCH"]
 fix = true
 
-[tool.ruff.isort]
-known-first-party = ["drgnet"]
+
+[tool.setuptools.package-data]
+config = ["config/config.yaml"]

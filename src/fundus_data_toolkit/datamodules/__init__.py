@@ -1,3 +1,4 @@
+import os
 from collections import namedtuple
 from pathlib import Path
 
@@ -7,12 +8,13 @@ CLASSIF_PATHS = None
 SEG_PATHS = None
 yaml_file = None
 
+cpath = Path(os.path.dirname(os.path.realpath(__file__)))
 try:
     yaml_path = Path('config/config.yaml')
     with open(yaml_path) as f:
         yaml_file = yaml.load(f, Loader=yaml.FullLoader)
 except FileNotFoundError:
-    yaml_path = Path('../config/config.yaml')
+    yaml_path = cpath /'../../..'/ Path('config/config.yaml')
     with open(yaml_path) as f:
         yaml_file = yaml.load(f, Loader=yaml.FullLoader)
     

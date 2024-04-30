@@ -1,8 +1,8 @@
 from typing import List
 
-from nntools.dataset.utils import concat_datasets_if_needed
+from nntools.dataset.utils.concat import concat_datasets_if_needed
 
-from fundusData.datamodules.common import FundusDatamodule
+from fundus_data_toolkit.datamodules.common import FundusDatamodule
 
 
 def merge_existing_datamodules(datamodules: List[FundusDatamodule], separate_test_sets:bool=True) -> FundusDatamodule:

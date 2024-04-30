@@ -6,12 +6,13 @@ import cv2
 import nntools.dataset as D
 import torch
 from albumentations.pytorch.transforms import ToTensorV2
-from nntools.dataset.utils import class_weighting, random_split
+from nntools.dataset.utils.balance import class_weighting
+from nntools.dataset.utils.ops import random_split
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader
 
-from fundusData.config import get_normalization
-from fundusData.data_aug import DAType
+from fundus_data_toolkit.config import get_normalization
+from fundus_data_toolkit.data_aug import DAType
 
 
 class FundusDatamodule(LightningDataModule):
@@ -25,13 +26,13 @@ class FundusDatamodule(LightningDataModule):
         use_cache:bool=False,
         persistent_workers:bool=True,
         data_augmentation_type: Optional[DAType] = None,
+        **dataset_kwargs
     ):
         super().__init__()
         self.img_size = img_size
         self.valid_size = valid_size
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.use_cache = use_cache
         self.persistent_workers = persistent_workers
         self.da_type = data_augmentation_type
 
@@ -43,7 +44,15 @@ class FundusDatamodule(LightningDataModule):
         self.train: Union[D.ClassificationDataset, D.SegmentationDataset] = None
         self.val: Union[D.ClassificationDataset, D.SegmentationDataset] = None
         self.test: Union[D.ClassificationDataset, D.SegmentationDataset] = None
-    
+        self.dataset_kwargs = dataset_kwargs
+        self.dataset_kwargs["use_cache"] = use_cache
+
+        
+        self.pre_resize = []        
+        self.post_resize_pre_cache = []
+        self.post_resize_post_cache = []
+        
+        
     def setup_all(self):
         self.setup("fit")
         self.setup("validate")
@@ -82,6 +91,7 @@ class FundusDatamodule(LightningDataModule):
             raise ValueError("Train dataset is not created yet.")
         
         return self.train.get_class_count()
+    
     
     def img_size_ops(self) -> A.Compose:
 

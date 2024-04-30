@@ -3,7 +3,7 @@ from typing import Tuple
 
 from nntools.dataset import SegmentationDataset
 
-from fundusData.datasets.utils import DatasetVariant
+from fundus_data_toolkit.datasets.utils import DatasetVariant
 
 
 def get_IDRiD_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, int]) -> SegmentationDataset:
