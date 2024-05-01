@@ -1,27 +1,56 @@
-import os
-from collections import namedtuple
-from pathlib import Path
+import warnings
+from enum import Enum
+from typing import Dict
 
-import yaml
+from fundus_data_toolkit.utils import usersettings
+from fundus_data_toolkit.utils.collec import AttrDict
 
-CLASSIF_PATHS = None
-SEG_PATHS = None
-yaml_file = None
 
-cpath = Path(os.path.dirname(os.path.realpath(__file__)))
-try:
-    yaml_path = Path('config/config.yaml')
-    with open(yaml_path) as f:
-        yaml_file = yaml.load(f, Loader=yaml.FullLoader)
-except FileNotFoundError:
-    yaml_path = cpath /'../../..'/ Path('config/config.yaml')
-    with open(yaml_path) as f:
-        yaml_file = yaml.load(f, Loader=yaml.FullLoader)
+CLASSIF_PATHS = AttrDict()
+SEG_PATHS = AttrDict()
     
+USER_SETTING = usersettings.Settings("fundus-data-toolkit")
+USER_SETTING.load_settings()
 
+if USER_SETTING:
+    for key, value in USER_SETTING.items():
+        if 'classification' in key:
+            CLASSIF_PATHS[key.split('classification_')[-1].upper()] = value
+        elif 'segmentation' in key:
+            SEG_PATHS[key.split('segmentation_')[-1].upper()] = value
+else:
+    warnings.warn("No settings found, please run `register_paths` to set paths or don't use CLASSIF_PATHS or SEG_PATHS.")
+    
+class Task(Enum):
+    CLASSIFICATION: str = "classification"
+    SEGMENTATION: str = "segmentation"
+    
+    @classmethod
+    def _missing_(cls, value):
+        value = value.lower()
+        for member in cls:
+            if member.lower() == value:
+                return member
+        return None
 
-if yaml_file:
-    if 'Classification' in yaml_file:
-        CLASSIF_PATHS = namedtuple('ClassificationPaths', yaml_file['Classification'].keys())(**yaml_file['Classification'])
-    if 'Segmentation' in yaml_file:
-        SEG_PATHS = namedtuple('SegmentationPaths', yaml_file['Segmentation'].keys())(**yaml_file['Segmentation'])
+def register_paths(paths: Dict[str, str], task=Task.CLASSIFICATION):
+    global CLASSIF_PATHS, SEG_PATHS
+    setting = usersettings.Settings("fundus-data-toolkit")
+    task = Task(task)
+    for key, value in paths.items():
+        match task:
+            case Task.CLASSIFICATION:
+                    s = f"classification_{key}".lower()
+                    setting.add_setting(s, str, value)
+                    setting[s] = value
+                    CLASSIF_PATHS[key.upper()] = value
+            case Task.SEGMENTATION:
+                s = f"segmentation_{key}".lower()
+                setting.add_setting(s, str, value)
+                setting[s] = value
+                SEG_PATHS[key.upper()] = value
+            case _:
+                raise ValueError(f"Task must be either {Task.CLASSIFICATION} or {Task.SEGMENTATION}, but got {task}")
+    print(setting)
+    setting.save_settings()
+    

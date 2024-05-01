@@ -35,7 +35,3 @@ line-length = 120
 select = ["E", "F", "I", "RUF", "TCH"]
 fixable = ["I", "RUF100", "TCH"]
 fix = true
-
-
-[tool.setuptools.package-data]
-config = ["config/config.yaml"]
