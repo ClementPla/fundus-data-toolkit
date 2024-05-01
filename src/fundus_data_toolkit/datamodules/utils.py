@@ -18,7 +18,7 @@ def merge_existing_datamodules(
         isinstance(dm, FundusDatamodule) for dm in datamodules
     ), "All datamodules must be of type FundusDatamodule"
 
-    img_size = set([dm.img_size for dm in datamodules])
+    img_size = set([tuple(dm.img_size) for dm in datamodules])
     num_workers = set([dm.num_workers for dm in datamodules])
     batch_size = set([dm.batch_size for dm in datamodules])
 
