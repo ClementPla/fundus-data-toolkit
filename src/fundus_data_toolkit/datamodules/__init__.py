@@ -9,7 +9,7 @@ from fundus_data_toolkit.utils.collec import AttrDict
 CLASSIF_PATHS = AttrDict()
 SEG_PATHS = AttrDict()
     
-USER_SETTING = usersettings.Settings("fundus-data-toolkit")
+USER_SETTING = usersettings.Settings("fundus_data_toolkit")
 USER_SETTING.load_settings()
 
 if USER_SETTING:
@@ -35,7 +35,7 @@ class Task(Enum):
 
 def register_paths(paths: Dict[str, str], task=Task.CLASSIFICATION):
     global CLASSIF_PATHS, SEG_PATHS
-    setting = usersettings.Settings("fundus-data-toolkit")
+    setting = usersettings.Settings("fundus_data_toolkit")
     task = Task(task)
     for key, value in paths.items():
         match task:
