@@ -12,6 +12,7 @@ from fundus_data_toolkit.datasets.classification import (
     get_IDRiD_dataset,
 )
 from fundus_data_toolkit.utils.image_processing import fundus_autocrop, fundus_precise_autocrop
+from fundus_data_toolkit.utils.image_processing import image_check
 
 
 class FundusClassificationDatamodule(FundusDatamodule):
@@ -42,6 +43,7 @@ class FundusClassificationDatamodule(FundusDatamodule):
                           *self.post_resize_pre_cache, 
                           CacheBullet(),
                           *self.post_resize_post_cache, 
+                          image_check,
                           self.normalize_and_cast_op())
         
         train_composer = Composition()
@@ -52,7 +54,7 @@ class FundusClassificationDatamodule(FundusDatamodule):
                            CacheBullet(), 
                            *self.post_resize_post_cache, 
                            *self.data_aug_ops(), 
-                           
+                           image_check,
                            self.normalize_and_cast_op())
         if self.train:
             self.train.composer = train_composer

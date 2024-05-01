@@ -13,6 +13,7 @@ from torch.utils.data import DataLoader
 
 from fundus_data_toolkit.config import get_normalization
 from fundus_data_toolkit.data_aug import DAType
+from fundus_data_toolkit.utils.image_processing import image_check
 
 
 class FundusDatamodule(LightningDataModule):

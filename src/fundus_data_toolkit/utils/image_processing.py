@@ -60,3 +60,11 @@ def fundus_precise_autocrop(image:np.ndarray):
         "mask": mask[y_range[0] : y_range[1], x_range[0] : x_range[1]],
 
     }
+    
+@nntools_wrapper
+def image_check(image: np.ndarray):
+    if image.ndim == 2:
+        image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+    return {"image": image}
+    
+    
