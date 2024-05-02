@@ -34,7 +34,7 @@ class FundusClassificationDatamodule(FundusDatamodule):
     def data_aug_ops(self) -> Union[List[Composition], List[None]]:
         if self.da_type is None:
             return []
-        return [ClassificationDA(self.da_type).get_data_aug()]
+        return [ClassificationDA(self.da_type)]
     
     def finalize_composition(self):
         test_composer = Composition()
