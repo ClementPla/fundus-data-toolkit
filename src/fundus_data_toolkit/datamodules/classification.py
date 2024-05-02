@@ -22,8 +22,10 @@ class FundusClassificationDatamodule(FundusDatamodule):
                  use_cache=False, 
                  persistent_workers=True, filter_classes=None,
                  precise_autocrop: bool = False,
+                 data_augmentation_type=None,
                  **dataset_kwargs):
-        super().__init__(img_size, batch_size, valid_size, num_workers, use_cache, persistent_workers, **dataset_kwargs)
+        super().__init__(img_size, batch_size, valid_size, num_workers, use_cache, persistent_workers,
+                         data_augmentation_type=data_augmentation_type,**dataset_kwargs)
 
         self.data_dir = data_dir
         self.filter_classes = filter_classes
