@@ -31,7 +31,8 @@ class FundusDatamodule(LightningDataModule):
         super().__init__()
         self.img_size = img_size
         self.valid_size = valid_size
-        self.batch_size = batch_size
+        
+        self.batch_size = batch_size // torch.cuda.device_count()
         self.num_workers = num_workers
         self.persistent_workers = persistent_workers
         self.da_type = data_augmentation_type
