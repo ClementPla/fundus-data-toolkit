@@ -28,14 +28,21 @@ class FundusDatamodule(LightningDataModule):
         use_cache: bool = False,
         persistent_workers: bool = True,
         precise_autocrop: bool = False,
+        eval_batch_size: Optional[int] = None,
         data_augmentation_type: Optional[DAType] = None,
         **dataset_kwargs,
     ):
         super().__init__()
         self.img_size = img_size
         self.valid_size = valid_size
-
+        
         self.batch_size = batch_size // torch.cuda.device_count()
+        
+        if eval_batch_size is None:
+            self.eval_batch_size = batch_size
+        else:
+            self.eval_batch_size = eval_batch_size
+            
         self.num_workers = num_workers
         self.persistent_workers = persistent_workers
         self.da_type = data_augmentation_type
@@ -154,7 +161,7 @@ class FundusDatamodule(LightningDataModule):
             return [
                 DataLoader(
                     ds,
-                    batch_size=self.batch_size,
+                    batch_size=self.eval_batch_size,
                     num_workers=self.num_workers,
                     shuffle=shuffle,
                     persistent_workers=False,
@@ -165,7 +172,7 @@ class FundusDatamodule(LightningDataModule):
 
         return DataLoader(
             self.test,
-            batch_size=self.batch_size,
+            batch_size=self.eval_batch_size,
             num_workers=self.num_workers,
             shuffle=shuffle,
             persistent_workers=False,
