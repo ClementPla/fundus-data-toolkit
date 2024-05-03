@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import List
 
 from nntools.dataset.utils.concat import concat_datasets_if_needed
@@ -26,9 +27,7 @@ def merge_existing_datamodules(
     assert len(num_workers) == 1, "All datamodules must have the same num_workers"
     assert len(batch_size) == 1, "All datamodules must have the same batch_size"
 
-    new_datamodule = FundusDatamodule(
-        img_size=img_size.pop(), batch_size=batch_size.pop(), num_workers=num_workers.pop()
-    )
+    new_datamodule = deepcopy(datamodules[0])
 
     new_datamodule.train = concat_datasets_if_needed([dm.train for dm in datamodules if dm.train is not None])
     new_datamodule.val = concat_datasets_if_needed([dm.val for dm in datamodules if dm.val is not None])
