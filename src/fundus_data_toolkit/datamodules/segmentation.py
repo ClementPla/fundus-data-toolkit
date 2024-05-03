@@ -222,23 +222,3 @@ class RETLESDataModule_s(FundusSegmentationDatamodule):
             case "test":
                 self.test = get_RETLES_dataset(self.data_dir, DatasetVariant.TEST, self.img_size, **self.dataset_kwargs)
         super().setup(stage)
-
-
-if __name__ == '__main__':
-    paths = {
-    "ddr": "/home/clement/Documents/data/DDR/DDR-dataset/lesion_segmentation/",
-    "fgadr": "/home/clement/Documents/data/FGADR/",
-    "messidor": "/home/clement/Documents/data/Maples-DR/",
-    "idrid": "/home/clement/Documents/data/IDRID/",
-    "retles": "/home/clement/Documents/data/retinal-lesions-v20191227/",
-    }
-    
-    ddr_datamodule = DDRDataModule_s(paths["ddr"], img_size=(512, 512), batch_size=1, 
-                                 precise_autocrop=False,
-                                 use_cache=False).setup_all()
-
-
-    # retles_datamodule = RETLESDataModule_s(paths["retles"], img_size=(512, 512), batch_size=1, use_cache=False).setup_all()
-    # retles_datamodule.train.plot(0)
-    # import matplotlib.pyplot as plt
-    # plt.show(block=True)
