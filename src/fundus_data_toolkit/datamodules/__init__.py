@@ -5,7 +5,6 @@ from typing import Dict
 from fundus_data_toolkit.utils import usersettings
 from fundus_data_toolkit.utils.collec import AttrDict
 
-
 CLASSIF_PATHS = AttrDict()
 SEG_PATHS = AttrDict()
     
