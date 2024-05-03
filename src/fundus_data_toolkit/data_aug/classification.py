@@ -31,7 +31,8 @@ class ClassificationDA(ABCMeta):
             [
                 A.OneOf([A.HorizontalFlip(p=0.5), A.VerticalFlip(p=0.5)]),
                 A.ShiftScaleRotate(p=0.5, scale_limit=0.1, rotate_limit=10, border_mode=cv2.BORDER_CONSTANT),
-            ]
+            ],
+            additional_targets={"roi": "mask"},
         )
 
     @staticmethod
@@ -40,7 +41,8 @@ class ClassificationDA(ABCMeta):
             [
                 *ClassificationDA.light_transform(),
                 A.RandomBrightnessContrast(p=0.5),
-            ]
+            ],
+            additional_targets={"roi": "mask"},
         )
 
     @staticmethod
@@ -50,7 +52,8 @@ class ClassificationDA(ABCMeta):
                 *ClassificationDA.medium_transform(),
                 A.HueSaturationValue(p=0.5),
                 A.Blur(blur_limit=3, p=0.1),
-            ]
+            ],
+            additional_targets={"roi": "mask"},
         )
 
     @staticmethod

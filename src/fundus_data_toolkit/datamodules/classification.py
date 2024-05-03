@@ -11,8 +11,7 @@ from fundus_data_toolkit.datasets.classification import (
     get_EyePACS_dataset,
     get_IDRiD_dataset,
 )
-from fundus_data_toolkit.utils.image_processing import fundus_autocrop, fundus_precise_autocrop
-from fundus_data_toolkit.utils.image_processing import image_check
+from fundus_data_toolkit.utils.image_processing import fundus_autocrop, fundus_precise_autocrop, image_check
 
 
 class FundusClassificationDatamodule(FundusDatamodule):
@@ -29,7 +28,6 @@ class FundusClassificationDatamodule(FundusDatamodule):
 
         self.data_dir = data_dir
         self.filter_classes = filter_classes
-        self.precise_autocrop = precise_autocrop
         
     def data_aug_ops(self) -> Union[List[Composition], List[None]]:
         if self.da_type is None:

@@ -1,4 +1,5 @@
 import os
+from abc import abstractmethod
 from typing import List, Optional, Union
 
 import albumentations as A
@@ -25,17 +26,19 @@ class FundusDatamodule(LightningDataModule):
         num_workers: int = 4,
         use_cache: bool = False,
         persistent_workers: bool = True,
+        precise_autocrop: bool = False,
         data_augmentation_type: Optional[DAType] = None,
         **dataset_kwargs,
     ):
         super().__init__()
         self.img_size = img_size
         self.valid_size = valid_size
-        
+
         self.batch_size = batch_size // torch.cuda.device_count()
         self.num_workers = num_workers
         self.persistent_workers = persistent_workers
         self.da_type = data_augmentation_type
+        self.precise_autocrop = precise_autocrop
 
         if num_workers == "auto":
             self.num_workers = os.cpu_count() // torch.cuda.device_count()
@@ -57,6 +60,10 @@ class FundusDatamodule(LightningDataModule):
         self.setup("validate")
         self.setup("test")
         return self
+
+    @abstractmethod
+    def finalize_composition(self):
+        pass
 
     def set_classes_filter(self):
         if self.filter_classes is not None:
@@ -104,12 +111,15 @@ class FundusDatamodule(LightningDataModule):
                     always_apply=True,
                     border_mode=cv2.BORDER_CONSTANT,
                 ),
-            ]
+            ],
+            additional_targets={"roi": "mask"},
         )
 
     def normalize_and_cast_op(self):
         mean, std = get_normalization()
-        return A.Compose([A.Normalize(mean=mean, std=std, always_apply=True), ToTensorV2()])
+        return A.Compose(
+            [A.Normalize(mean=mean, std=std, always_apply=True), ToTensorV2()], additional_targets={"roi": "mask"}
+        )
 
     def train_dataloader(self) -> DataLoader:
         if self.train is None:
