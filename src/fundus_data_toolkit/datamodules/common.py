@@ -1,10 +1,9 @@
 import os
 from abc import abstractmethod
-from typing import List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import albumentations as A
 import cv2
-import nntools.dataset as D
 import torch
 from albumentations.pytorch.transforms import ToTensorV2
 from nntools.dataset.utils.balance import class_weighting
@@ -14,6 +13,9 @@ from torch.utils.data import DataLoader
 
 from fundus_data_toolkit.config import get_normalization
 from fundus_data_toolkit.data_aug import DAType
+
+if TYPE_CHECKING:
+    import nntools.dataset as D
 
 
 class FundusDatamodule(LightningDataModule):
