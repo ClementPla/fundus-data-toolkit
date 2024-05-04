@@ -36,7 +36,7 @@ class FundusDatamodule(LightningDataModule):
         self.img_size = img_size
         self.valid_size = valid_size
         
-        self.batch_size = batch_size // torch.cuda.device_count()
+        self.batch_size = batch_size // max(1, torch.cuda.device_count())
         
         if eval_batch_size is None:
             self.eval_batch_size = batch_size
