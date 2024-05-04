@@ -33,6 +33,9 @@ class FundusDatamodule(LightningDataModule):
         **dataset_kwargs,
     ):
         super().__init__()
+        if isinstance(img_size, int):
+            img_size = (img_size, img_size)
+            
         self.img_size = img_size
         self.valid_size = valid_size
         
