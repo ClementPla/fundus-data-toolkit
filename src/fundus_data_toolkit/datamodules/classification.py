@@ -62,7 +62,11 @@ class FundusClassificationDatamodule(FundusDatamodule):
         if self.val:
             self.val.composer = test_composer
         if self.test:
-            self.test.composer = test_composer
+            if isinstance(self.test, list):
+                for test_set in self.test:
+                    test_set.composer = test_composer
+            else:
+                self.test.composer = test_composer
 
     def setup(self, stage: str):
         if stage == "validate":
