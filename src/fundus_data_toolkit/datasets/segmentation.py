@@ -106,6 +106,9 @@ def get_MESSIDOR_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int
     )
     return dataset
 
+def get_MAPLESDR_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs) -> SegmentationDataset:
+    return get_MESSIDOR_dataset(root, variant, img_size, **kwargs)
+
 def get_FGADR_dataset(root:str, variant:DatasetVariant, img_size: Tuple[int, int], **kwargs) -> SegmentationDataset:
 
     root = Path(root)

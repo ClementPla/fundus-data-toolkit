@@ -48,7 +48,7 @@ class FundusDatamodule(LightningDataModule):
             
         self.num_workers = num_workers
         self.persistent_workers = persistent_workers
-        self.da_type = data_augmentation_type
+        self.da_type = DAType(data_augmentation_type)
         self.precise_autocrop = precise_autocrop
 
         if num_workers == "auto":

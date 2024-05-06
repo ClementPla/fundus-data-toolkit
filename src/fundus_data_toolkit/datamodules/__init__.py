@@ -7,23 +7,26 @@ from fundus_data_toolkit.utils.collec import AttrDict
 
 CLASSIF_PATHS = AttrDict()
 SEG_PATHS = AttrDict()
-    
+
 USER_SETTING = usersettings.Settings("fundus_data_toolkit")
 USER_SETTING.load_settings()
 
 if USER_SETTING:
     for key, value in USER_SETTING.items():
-        if 'classification' in key:
-            CLASSIF_PATHS[key.split('classification_')[-1].upper()] = value
-        elif 'segmentation' in key:
-            SEG_PATHS[key.split('segmentation_')[-1].upper()] = value
+        if "classification" in key:
+            CLASSIF_PATHS[key.split("classification_")[-1].upper()] = value
+        elif "segmentation" in key:
+            SEG_PATHS[key.split("segmentation_")[-1].upper()] = value
 else:
-    warnings.warn("No settings found, please run `register_paths` to set paths or don't use CLASSIF_PATHS or SEG_PATHS.")
-    
+    warnings.warn(
+        "No settings found, please run `register_paths` to set paths or don't use CLASSIF_PATHS or SEG_PATHS."
+    )
+
+
 class Task(Enum):
     CLASSIFICATION: str = "classification"
     SEGMENTATION: str = "segmentation"
-    
+
     @classmethod
     def _missing_(cls, value):
         value = value.lower()
@@ -32,6 +35,7 @@ class Task(Enum):
                 return member
         return None
 
+
 def register_paths(paths: Dict[str, str], task=Task.CLASSIFICATION):
     global CLASSIF_PATHS, SEG_PATHS
     setting = usersettings.Settings("fundus_data_toolkit")
@@ -39,10 +43,10 @@ def register_paths(paths: Dict[str, str], task=Task.CLASSIFICATION):
     for key, value in paths.items():
         match task:
             case Task.CLASSIFICATION:
-                    s = f"classification_{key}".lower()
-                    setting.add_setting(s, str, value)
-                    setting[s] = value
-                    CLASSIF_PATHS[key.upper()] = value
+                s = f"classification_{key}".lower()
+                setting.add_setting(s, str, value)
+                setting[s] = value
+                CLASSIF_PATHS[key.upper()] = value
             case Task.SEGMENTATION:
                 s = f"segmentation_{key}".lower()
                 setting.add_setting(s, str, value)
@@ -50,6 +54,4 @@ def register_paths(paths: Dict[str, str], task=Task.CLASSIFICATION):
                 SEG_PATHS[key.upper()] = value
             case _:
                 raise ValueError(f"Task must be either {Task.CLASSIFICATION} or {Task.SEGMENTATION}, but got {task}")
-    print(setting)
     setting.save_settings()
-    
