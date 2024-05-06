@@ -74,7 +74,12 @@ class FundusDatamodule(LightningDataModule):
 
     @abstractmethod
     def finalize_composition(self):
-        pass
+        if self.test:
+            if isinstance(self.test, list):
+                for test_set in self.test:
+                    test_set.return_indices = True
+            else:
+                self.test.return_indices = True
 
     def set_classes_filter(self):
         if self.filter_classes is not None:
