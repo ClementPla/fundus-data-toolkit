@@ -16,7 +16,7 @@ from fundus_data_toolkit.datasets.segmentation import (
     get_RETLES_dataset,
     get_TJDR_dataset,
 )
-from fundus_data_toolkit.datasets.utils import DatasetVariant
+from fundus_data_toolkit.datasets.utils import DatasetVariant, LesionIndex
 from fundus_data_toolkit.utils.image_processing import fundus_autocrop, fundus_precise_autocrop, image_check
 
 
@@ -43,10 +43,10 @@ def process_masks_multiclass(
         Hemorrhages = np.logical_or(Hemorrhages, VitreousHemorrhages)
 
     mask = np.zeros_like(Exudates, dtype=np.uint8)
-    mask[Cotton_Wool_Spot != 0] = 1
-    mask[Exudates != 0] = 2
-    mask[Hemorrhages != 0] = 3
-    mask[Microaneurysms != 0] = 4
+    mask[Cotton_Wool_Spot != 0] = LesionIndex.CWS.value
+    mask[Exudates != 0] = LesionIndex.EX.value
+    mask[Hemorrhages != 0] = LesionIndex.HEM.value
+    mask[Microaneurysms != 0] = LesionIndex.MA.value
     return {"mask": mask}
 
 
@@ -67,23 +67,13 @@ def process_masks_multilabel(
         Hemorrhages = np.logical_or(PreretinalHemorrhages, RetinalHemorrhages)
         Hemorrhages = np.logical_or(Hemorrhages, VitreousHemorrhages)
 
-    mask = np.stack([Cotton_Wool_Spot, Exudates, Hemorrhages, Microaneurysms], axis=-1)
+    h, w = Exudates.shape
+    mask = np.zeros((h, w, 4), dtype=np.uint8)
+    mask[:, :, LesionIndex.CWS.value] = Cotton_Wool_Spot
+    mask[:, :, LesionIndex.EX.value] = Exudates
+    mask[:, :, LesionIndex.HEM.value] = Hemorrhages
+    mask[:, :, LesionIndex.MA.value] = Microaneurysms
     return {"mask": mask}
-
-
-class TJDR_COLORS(Enum):
-    CWS = (0, 0, 128)
-    EXU = (128, 0, 0)
-    HEM = (0, 128, 0)
-    MIC = (128, 128, 0)
-    
-@nntools_wrapper
-def tjdr_multicolor_to_multilabel(mask):
-    pass
-
-@nntools_wrapper
-def tjdr_multicolor_to_multiclass(mask):
-    pass
 
 
 class FundusSegmentationDatamodule(FundusDatamodule):
@@ -130,21 +120,23 @@ class FundusSegmentationDatamodule(FundusDatamodule):
                 return process_masks_multilabel
             case SegmentationType.MULTICLASS:
                 return process_masks_multiclass
-                
-        
+
     def finalize_composition(self):
         test_composer = Composition()
         train_composer = Composition()
         autocrop = fundus_precise_autocrop if self.precise_autocrop else fundus_autocrop
         process_gt = self.get_gt_process_fn()
+        if process_gt is not None:
+            test_composer.add(process_gt)
+            train_composer.add(process_gt)
+
         randomcrop = []
         if self.random_crop is not None:
             if isinstance(self.random_crop, int):
                 self.random_crop = (self.random_crop, self.random_crop)
-            randomcrop = [A.Compose([A.RandomCrop(*self.random_crop)], additional_targets={'roi': 'mask'})]
-            
+            randomcrop = [A.Compose([A.RandomCrop(*self.random_crop)], additional_targets={"roi": "mask"})]
+
         test_composer.add(
-            process_gt,
             autocrop,
             *self.pre_resize,
             self.img_size_ops(),
@@ -155,9 +147,7 @@ class FundusSegmentationDatamodule(FundusDatamodule):
             self.normalize_and_cast_op(),
         )
 
-        train_composer = Composition()
         train_composer.add(
-            process_gt,
             autocrop,
             *self.pre_resize,
             self.img_size_ops(),
@@ -179,13 +169,14 @@ class FundusSegmentationDatamodule(FundusDatamodule):
                     test_set.composer = test_composer
             else:
                 self.test.composer = test_composer
-        
+
         super().finalize_composition()
-        
+
     def data_aug_ops(self) -> Union[List[Composition], List[None]]:
         if self.da_type is None:
             return []
         return [SegmentationDA(self.da_type)]
+
 
 class IDRiDDataModule_s(FundusSegmentationDatamodule):
     def setup(self, stage: str):
@@ -254,16 +245,10 @@ class TJDRDataModule_s(FundusSegmentationDatamodule):
     def setup(self, stage: str):
         match stage:
             case "fit" | "validate":
-                self.train = get_TJDR_dataset(
-                    self.data_dir, DatasetVariant.TRAIN, self.img_size, **self.dataset_kwargs
-                )
+                self.train = get_TJDR_dataset(self.data_dir, DatasetVariant.TRAIN, self.img_size, **self.dataset_kwargs)
             case "test":
                 self.test = get_TJDR_dataset(self.data_dir, DatasetVariant.TEST, self.img_size, **self.dataset_kwargs)
         super().setup(stage)
-    
+
     def get_gt_process_fn(self):
-        match self.seg_type:
-            case SegmentationType.MULTILABEL:
-                return tjdr_multicolor_to_multilabel
-            case SegmentationType.MULTICLASS:
-                return tjdr_multicolor_to_multiclass
+        return None

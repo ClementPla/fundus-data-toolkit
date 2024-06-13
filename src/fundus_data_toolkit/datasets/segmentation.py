@@ -3,9 +3,9 @@ from typing import Tuple
 
 import torch
 from nntools import NNOpt
-from nntools.dataset import SegmentationDataset, random_split
+from nntools.dataset import SegmentationDataset, SegmentationDatasetWithColorMask, random_split
 
-from fundus_data_toolkit.datasets.utils import DatasetVariant
+from fundus_data_toolkit.datasets.utils import DatasetVariant, TJDR_color_interpretation
 
 
 def get_IDRiD_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs) -> SegmentationDataset:
@@ -38,12 +38,13 @@ def get_IDRiD_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, i
         img_root=img_root,
         shape=img_size,
         keep_size_ratio=True,
-        auto_pad=True, auto_resize=True,
+        auto_pad=True,
+        auto_resize=True,
         mask_root=masks,
         binarize_mask=True,
         extract_image_id_function=sort_func_idrid,
         filling_strategy=NNOpt.FILL_UPSAMPLE,
-        id=f'IDRID_{variant.value}',
+        id=f"IDRID_{variant.value}",
         **kwargs,
     )
     return dataset
@@ -53,7 +54,7 @@ def get_DDR_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, int
     root = Path(root)
 
     img_root = root / variant.value / "image/"
-    
+
     mask_root = root / variant.value / "label/"
     if variant == DatasetVariant.VALID:
         mask_root = root / variant.value / "segmentation label/"
@@ -68,19 +69,23 @@ def get_DDR_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, int
         img_root=img_root,
         shape=img_size,
         keep_size_ratio=True,
-        auto_pad=True, auto_resize=True,
+        auto_pad=True,
+        auto_resize=True,
         mask_root=masks,
         binarize_mask=True,
         filling_strategy=NNOpt.FILL_UPSAMPLE,
-        id=f'DDR_{variant.value}',
-        **kwargs
+        id=f"DDR_{variant.value}",
+        **kwargs,
     )
     return dataset
 
-def get_MESSIDOR_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs) -> SegmentationDataset:
+
+def get_MESSIDOR_dataset(
+    root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs
+) -> SegmentationDataset:
     if variant == DatasetVariant.VALID:
         raise ValueError("No explicit validation set for MESSIDOR dataset")
-    
+
     root = Path(root)
 
     img_root = root / variant.value / "fundus/"
@@ -97,20 +102,24 @@ def get_MESSIDOR_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int
         img_root=img_root,
         shape=img_size,
         keep_size_ratio=True,
-        auto_pad=True, auto_resize=True,
+        auto_pad=True,
+        auto_resize=True,
         mask_root=masks,
         binarize_mask=True,
         filling_strategy=NNOpt.FILL_UPSAMPLE,
-        id=f'MESSIDOR_{variant.value}',
-        **kwargs
+        id=f"MESSIDOR_{variant.value}",
+        **kwargs,
     )
     return dataset
 
-def get_MAPLESDR_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs) -> SegmentationDataset:
+
+def get_MAPLESDR_dataset(
+    root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs
+) -> SegmentationDataset:
     return get_MESSIDOR_dataset(root, variant, img_size, **kwargs)
 
-def get_FGADR_dataset(root:str, variant:DatasetVariant, img_size: Tuple[int, int], **kwargs) -> SegmentationDataset:
 
+def get_FGADR_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs) -> SegmentationDataset:
     root = Path(root)
 
     img_root = root / "Original_Images"
@@ -128,12 +137,13 @@ def get_FGADR_dataset(root:str, variant:DatasetVariant, img_size: Tuple[int, int
         img_root=img_root,
         shape=img_size,
         keep_size_ratio=True,
-        auto_pad=True, auto_resize=True,
+        auto_pad=True,
+        auto_resize=True,
         mask_root=masks,
         binarize_mask=True,
         filling_strategy=NNOpt.FILL_UPSAMPLE,
-        id='FGADR',
-        **kwargs
+        id="FGADR",
+        **kwargs,
     )
     train, test = random_split(dataset, [0.8, 0.2], generator=torch.Generator().manual_seed(42))
     match variant:
@@ -143,6 +153,7 @@ def get_FGADR_dataset(root:str, variant:DatasetVariant, img_size: Tuple[int, int
             return test
         case DatasetVariant.VALID:
             raise ValueError("No explicit validation set for FGADR dataset")
+
 
 def get_RETLES_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs) -> SegmentationDataset:
     root = Path(root)
@@ -157,20 +168,21 @@ def get_RETLES_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, 
         "PreretinalHemorrhages": mask_root / "preretinal_hemorrhage",
         "RetinalHemorrhages": mask_root / "retinal_hemorrhage",
         "VitreousHemorrhages": mask_root / "vitreous_hemorrhage",
-        "FibrousProliferation" : mask_root / "fibrous_proliferation",
-        "Neovascularization" : mask_root / "neovascularization",
+        "FibrousProliferation": mask_root / "fibrous_proliferation",
+        "Neovascularization": mask_root / "neovascularization",
     }
 
     dataset = SegmentationDataset(
         img_root=img_root,
         shape=img_size,
         keep_size_ratio=True,
-        auto_pad=True, auto_resize=True,
+        auto_pad=True,
+        auto_resize=True,
         mask_root=masks,
         binarize_mask=True,
         filling_strategy=NNOpt.FILL_UPSAMPLE,
-        id='RETLES',
-        **kwargs
+        id="RETLES",
+        **kwargs,
     )
     train, test = random_split(dataset, [0.8, 0.2], generator=torch.Generator().manual_seed(42))
     match variant:
@@ -181,7 +193,27 @@ def get_RETLES_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, 
         case DatasetVariant.VALID:
             raise ValueError("No explicit validation set for RETLES dataset")
 
+
 def get_TJDR_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs) -> SegmentationDataset:
-    pass
-    
-    
+    root = Path(root)
+    img_root = root / variant.value / "image"
+    mask_root = root / variant.value / "annotation"
+
+    dataset = SegmentationDatasetWithColorMask(
+        img_root=img_root,
+        mask_root=mask_root,
+        shape=img_size,
+        auto_pad=True,
+        auto_resize=True,
+        binarize_mask=False,
+        filling_strategy=NNOpt.FILL_UPSAMPLE,
+        id="TJDR",
+        color_interpretation=TJDR_color_interpretation,
+        **kwargs,
+    )
+
+    match variant:
+        case DatasetVariant.TRAIN | DatasetVariant.TEST:
+            return dataset
+        case DatasetVariant.VALID:
+            raise ValueError("No explicit validation set for TJDR dataset")
