@@ -71,7 +71,26 @@ class FundusDatamodule(LightningDataModule):
         self.setup("validate")
         self.setup("test")
         return self
-
+    
+    def return_tag(self, value):
+        if self.train:
+            if isinstance(self.train, list):
+                for train_set in self.train:
+                    train_set.return_tag = value
+            else:
+                self.train.return_tag = value
+        if self.val:
+            if isinstance(self.val, list):
+                for val_set in self.val:
+                    val_set.return_tag = value
+            else:
+                self.val.return_tag = value
+        if self.test:
+            if isinstance(self.test, list):
+                for test_set in self.test:
+                    test_set.return_tag = value
+            else:
+                self.test.return_tag = value
     @abstractmethod
     def finalize_composition(self):
         if self.test:
@@ -172,7 +191,7 @@ class FundusDatamodule(LightningDataModule):
                     batch_size=self.eval_batch_size,
                     num_workers=self.num_workers,
                     shuffle=shuffle,
-                    persistent_workers=False,
+                    persistent_workers=True,
                     pin_memory=True,
                 )
                 for ds in self.test

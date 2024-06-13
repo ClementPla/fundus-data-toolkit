@@ -14,12 +14,13 @@ from fundus_data_toolkit.datasets.segmentation import (
     get_IDRiD_dataset,
     get_MESSIDOR_dataset,
     get_RETLES_dataset,
+    get_TJDR_dataset,
 )
 from fundus_data_toolkit.datasets.utils import DatasetVariant
 from fundus_data_toolkit.utils.image_processing import fundus_autocrop, fundus_precise_autocrop, image_check
 
 
-class SegmentationType(Enum):
+class SegmentationType(str, Enum):
     MULTICLASS = "multiclass"
     MULTILABEL = "multilabel"
 
@@ -70,6 +71,21 @@ def process_masks_multilabel(
     return {"mask": mask}
 
 
+class TJDR_COLORS(Enum):
+    CWS = (0, 0, 128)
+    EXU = (128, 0, 0)
+    HEM = (0, 128, 0)
+    MIC = (128, 128, 0)
+    
+@nntools_wrapper
+def tjdr_multicolor_to_multilabel(mask):
+    pass
+
+@nntools_wrapper
+def tjdr_multicolor_to_multiclass(mask):
+    pass
+
+
 class FundusSegmentationDatamodule(FundusDatamodule):
     def __init__(
         self,
@@ -108,16 +124,19 @@ class FundusSegmentationDatamodule(FundusDatamodule):
             self.create_valid_set()
         self.finalize_composition()
 
+    def get_gt_process_fn(self):
+        match self.seg_type:
+            case SegmentationType.MULTILABEL:
+                return process_masks_multilabel
+            case SegmentationType.MULTICLASS:
+                return process_masks_multiclass
+                
+        
     def finalize_composition(self):
         test_composer = Composition()
         train_composer = Composition()
         autocrop = fundus_precise_autocrop if self.precise_autocrop else fundus_autocrop
-        match self.seg_type:
-            case SegmentationType.MULTILABEL:
-                process_gt = process_masks_multilabel
-            case SegmentationType.MULTICLASS:
-                process_gt = process_masks_multiclass
-        
+        process_gt = self.get_gt_process_fn()
         randomcrop = []
         if self.random_crop is not None:
             if isinstance(self.random_crop, int):
@@ -229,3 +248,22 @@ class RETLESDataModule_s(FundusSegmentationDatamodule):
             case "test":
                 self.test = get_RETLES_dataset(self.data_dir, DatasetVariant.TEST, self.img_size, **self.dataset_kwargs)
         super().setup(stage)
+
+
+class TJDRDataModule_s(FundusSegmentationDatamodule):
+    def setup(self, stage: str):
+        match stage:
+            case "fit" | "validate":
+                self.train = get_TJDR_dataset(
+                    self.data_dir, DatasetVariant.TRAIN, self.img_size, **self.dataset_kwargs
+                )
+            case "test":
+                self.test = get_TJDR_dataset(self.data_dir, DatasetVariant.TEST, self.img_size, **self.dataset_kwargs)
+        super().setup(stage)
+    
+    def get_gt_process_fn(self):
+        match self.seg_type:
+            case SegmentationType.MULTILABEL:
+                return tjdr_multicolor_to_multilabel
+            case SegmentationType.MULTICLASS:
+                return tjdr_multicolor_to_multiclass

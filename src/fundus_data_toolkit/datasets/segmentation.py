@@ -180,3 +180,8 @@ def get_RETLES_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, 
             return test
         case DatasetVariant.VALID:
             raise ValueError("No explicit validation set for RETLES dataset")
+
+def get_TJDR_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs) -> SegmentationDataset:
+    pass
+    
+    

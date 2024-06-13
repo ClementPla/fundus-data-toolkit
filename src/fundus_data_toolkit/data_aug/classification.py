@@ -22,6 +22,8 @@ class ClassificationDA(ABCMeta):
                 return cls.medium_transform()
             case DAType.HEAVY:
                 return cls.heavy_transform()
+            case DAType.NONE:
+                return []
             case _:
                 return cls.default_transform()
 
