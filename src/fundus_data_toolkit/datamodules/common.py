@@ -30,22 +30,23 @@ class FundusDatamodule(LightningDataModule):
         precise_autocrop: bool = False,
         eval_batch_size: Optional[int] = None,
         data_augmentation_type: Optional[DAType] = None,
+        skip_autocrop: bool = False,
         **dataset_kwargs,
     ):
         super().__init__()
         if isinstance(img_size, int):
             img_size = (img_size, img_size)
-            
+
         self.img_size = img_size
         self.valid_size = valid_size
-        
+
         self.batch_size = batch_size // max(1, torch.cuda.device_count())
-        
+
         if eval_batch_size is None:
             self.eval_batch_size = batch_size
         else:
             self.eval_batch_size = eval_batch_size
-            
+
         self.num_workers = num_workers
         self.persistent_workers = persistent_workers
         self.da_type = DAType(data_augmentation_type)
@@ -65,13 +66,14 @@ class FundusDatamodule(LightningDataModule):
         self.pre_resize = []
         self.post_resize_pre_cache = []
         self.post_resize_post_cache = []
+        self.skip_autocrop = skip_autocrop
 
     def setup_all(self):
         self.setup("fit")
         self.setup("validate")
         self.setup("test")
         return self
-    
+
     def return_tag(self, value):
         if self.train:
             if isinstance(self.train, list):
@@ -91,6 +93,7 @@ class FundusDatamodule(LightningDataModule):
                     test_set.return_tag = value
             else:
                 self.test.return_tag = value
+
     @abstractmethod
     def finalize_composition(self):
         if self.test:

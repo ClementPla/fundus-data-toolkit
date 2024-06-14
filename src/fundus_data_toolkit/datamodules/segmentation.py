@@ -17,7 +17,7 @@ from fundus_data_toolkit.datasets.segmentation import (
     get_TJDR_dataset,
 )
 from fundus_data_toolkit.datasets.utils import DatasetVariant, LesionIndex
-from fundus_data_toolkit.utils.image_processing import fundus_autocrop, fundus_precise_autocrop, image_check
+from fundus_data_toolkit.utils.image_processing import fundus_autocrop, fundus_precise_autocrop, fundus_roi, image_check
 
 
 class SegmentationType(str, Enum):
@@ -124,11 +124,19 @@ class FundusSegmentationDatamodule(FundusDatamodule):
     def finalize_composition(self):
         test_composer = Composition()
         train_composer = Composition()
-        autocrop = fundus_precise_autocrop if self.precise_autocrop else fundus_autocrop
         process_gt = self.get_gt_process_fn()
+
         if process_gt is not None:
             test_composer.add(process_gt)
             train_composer.add(process_gt)
+
+        if self.skip_autocrop:
+            train_composer.add(fundus_roi)
+            test_composer.add(fundus_roi)
+        else:
+            autocrop = fundus_precise_autocrop if self.precise_autocrop else fundus_autocrop
+            train_composer.add(autocrop)
+            test_composer.add(autocrop)
 
         randomcrop = []
         if self.random_crop is not None:
@@ -137,7 +145,6 @@ class FundusSegmentationDatamodule(FundusDatamodule):
             randomcrop = [A.Compose([A.RandomCrop(*self.random_crop)], additional_targets={"roi": "mask"})]
 
         test_composer.add(
-            autocrop,
             *self.pre_resize,
             self.img_size_ops(),
             *self.post_resize_pre_cache,
@@ -148,7 +155,6 @@ class FundusSegmentationDatamodule(FundusDatamodule):
         )
 
         train_composer.add(
-            autocrop,
             *self.pre_resize,
             self.img_size_ops(),
             *self.post_resize_post_cache,
@@ -204,6 +210,10 @@ class DDRDataModule_s(FundusSegmentationDatamodule):
 
 
 class FGADRDataModule_s(FundusSegmentationDatamodule):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.skip_autocrop = True
+
     def setup(self, stage: str):
         match stage:
             case "fit" | "validate":
@@ -216,6 +226,10 @@ class FGADRDataModule_s(FundusSegmentationDatamodule):
 
 
 class MESSIDORDataModule_s(FundusSegmentationDatamodule):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.skip_autocrop = True
+
     def setup(self, stage: str):
         match stage:
             case "fit" | "validate":
@@ -230,6 +244,10 @@ class MESSIDORDataModule_s(FundusSegmentationDatamodule):
 
 
 class RETLESDataModule_s(FundusSegmentationDatamodule):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.skip_autocrop = True
+
     def setup(self, stage: str):
         match stage:
             case "fit" | "validate":
@@ -242,6 +260,10 @@ class RETLESDataModule_s(FundusSegmentationDatamodule):
 
 
 class TJDRDataModule_s(FundusSegmentationDatamodule):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.skip_autocrop = True
+
     def setup(self, stage: str):
         match stage:
             case "fit" | "validate":

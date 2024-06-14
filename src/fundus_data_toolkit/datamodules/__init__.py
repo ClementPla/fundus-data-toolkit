@@ -8,8 +8,13 @@ from fundus_data_toolkit.utils.collec import AttrDict
 CLASSIF_PATHS = AttrDict()
 SEG_PATHS = AttrDict()
 
+
 USER_SETTING = usersettings.Settings("fundus_data_toolkit")
-USER_SETTING.load_settings()
+try:
+    USER_SETTING.load_settings()
+except usersettings.NoSectionError:
+    USER_SETTING = None
+
 
 if USER_SETTING:
     for key, value in USER_SETTING.items():
@@ -54,4 +59,17 @@ def register_paths(paths: Dict[str, str], task=Task.CLASSIFICATION):
                 SEG_PATHS[key.upper()] = value
             case _:
                 raise ValueError(f"Task must be either {Task.CLASSIFICATION} or {Task.SEGMENTATION}, but got {task}")
+
+    # Make sure we keep the old paths if they have not been overwritten
+    for key, value in SEG_PATHS.items():
+        if key not in paths:
+            s = f"segmentation_{key}".lower()
+            setting.add_setting(s, str, value)
+            setting[s] = value
+    for key, value in CLASSIF_PATHS.items():
+        if key not in paths:
+            s = f"classification_{key}".lower()
+            setting.add_setting(s, str, value)
+            setting[s] = value
+
     setting.save_settings()
