@@ -149,6 +149,7 @@ class FundusDatamodule(LightningDataModule):
                     min_width=self.img_size[1],
                     always_apply=True,
                     border_mode=cv2.BORDER_CONSTANT,
+                    value=0,
                 ),
             ],
             additional_targets={"roi": "mask"},
