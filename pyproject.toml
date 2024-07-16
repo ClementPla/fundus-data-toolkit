@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "A simple interface for creating datamodules from publicly available fundus datasets"
 dependencies = [
     "albumentations",
+    "appdirs",
     "torch",
     "torchvision",
     "numpy",

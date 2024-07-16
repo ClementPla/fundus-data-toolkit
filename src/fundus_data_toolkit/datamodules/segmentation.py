@@ -160,7 +160,7 @@ class FundusSegmentationDatamodule(FundusDatamodule):
             *self.post_resize_post_cache,
             CacheBullet(),
             *self.post_resize_post_cache,
-            *self.data_aug_ops(),
+            *(self.data_aug_ops()),
             image_check,
             *randomcrop,
             self.normalize_and_cast_op(),
@@ -179,7 +179,7 @@ class FundusSegmentationDatamodule(FundusDatamodule):
         super().finalize_composition()
 
     def data_aug_ops(self) -> Union[List[Composition], List[None]]:
-        if self.da_type is None:
+        if self.da_type is None or self.da_type == DAType.NONE:
             return []
         return [SegmentationDA(self.da_type)]
 

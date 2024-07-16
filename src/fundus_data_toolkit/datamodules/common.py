@@ -67,6 +67,7 @@ class FundusDatamodule(LightningDataModule):
         self.post_resize_pre_cache = []
         self.post_resize_post_cache = []
         self.skip_autocrop = skip_autocrop
+        self.train_shuffle = True
 
     def setup_all(self):
         self.setup("fit")
@@ -165,7 +166,7 @@ class FundusDatamodule(LightningDataModule):
         return DataLoader(
             self.train,
             batch_size=self.batch_size,
-            shuffle=True,
+            shuffle=self.train_shuffle,
             num_workers=self.num_workers,
             persistent_workers=self.persistent_workers and self.num_workers > 0,
             pin_memory=True,
