@@ -45,9 +45,10 @@ class FundusClassificationDatamodule(FundusDatamodule):
         self.filter_classes = filter_classes
 
     def data_aug_ops(self) -> Union[List[Composition], List[None]]:
-        if self.da_type is None:
+        da_ops = ClassificationDA(self.da_type)
+        if da_ops is None:
             return []
-        return [ClassificationDA(self.da_type)]
+        return [da_ops]
 
     def finalize_composition(self):
         test_composer = Composition()
@@ -59,7 +60,6 @@ class FundusClassificationDatamodule(FundusDatamodule):
             test_composer.add(autocrop)
 
         test_composer.add(
-            autocrop,
             *self.pre_resize,
             self.img_size_ops(),
             *self.post_resize_pre_cache,
@@ -69,10 +69,9 @@ class FundusClassificationDatamodule(FundusDatamodule):
             self.normalize_and_cast_op(),
         )
         train_composer.add(
-            autocrop,
             *self.pre_resize,
             self.img_size_ops(),
-            *self.post_resize_post_cache,
+            *self.post_resize_pre_cache,
             CacheBullet(),
             *self.post_resize_post_cache,
             *self.data_aug_ops(),

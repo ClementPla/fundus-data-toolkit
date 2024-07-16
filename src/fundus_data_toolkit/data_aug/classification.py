@@ -7,7 +7,6 @@ from fundus_data_toolkit.data_aug import DAType
 
 
 class ClassificationDA(ABCMeta):
-    
     def __new__(cls, type: DAType = DAType.DEFAULT):
         match type:
             case DAType.DEFAULT:
@@ -23,7 +22,7 @@ class ClassificationDA(ABCMeta):
             case DAType.HEAVY:
                 return cls.heavy_transform()
             case DAType.NONE:
-                return []
+                return None
             case _:
                 return cls.default_transform()
 
