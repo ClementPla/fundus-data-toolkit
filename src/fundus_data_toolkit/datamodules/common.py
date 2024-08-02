@@ -274,13 +274,16 @@ class FundusDatamodule(BaseDatamodule):
                     value=0,
                 ),
             ],
+            strict=False,
             additional_targets={"roi": "mask"},
         )
 
     def normalize_and_cast_op(self):
         mean, std = get_normalization()
         return A.Compose(
-            [A.Normalize(mean=mean, std=std, always_apply=True), ToTensorV2()], additional_targets={"roi": "mask"}
+            [A.Normalize(mean=mean, std=std, always_apply=True), ToTensorV2()],
+            additional_targets={"roi": "mask"},
+            strict=False,
         )
 
 
