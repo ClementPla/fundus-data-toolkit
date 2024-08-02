@@ -225,6 +225,7 @@ class FundusDatamodule(BaseDatamodule):
         eval_batch_size: Optional[int] = None,
         data_augmentation_type: Optional[DAType] = None,
         skip_autocrop: bool = False,
+        drop_last: bool = False,
         **dataset_kwargs,
     ):
         super().__init__(
@@ -234,6 +235,7 @@ class FundusDatamodule(BaseDatamodule):
             num_workers=num_workers,
             persistent_workers=persistent_workers,
             eval_batch_size=eval_batch_size,
+            drop_last=drop_last,
         )
         self.train: Union[D.ClassificationDataset, D.SegmentationDataset] = None
         self.val: Union[D.ClassificationDataset, D.SegmentationDataset] = None
