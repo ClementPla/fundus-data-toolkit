@@ -32,6 +32,7 @@ class BaseDatamodule(LightningDataModule):
         num_workers: int = 4,
         persistent_workers: bool = True,
         eval_batch_size: Optional[int] = None,
+        drop_last: bool = False,
     ):
         super().__init__()
         if isinstance(img_size, int):
@@ -49,6 +50,7 @@ class BaseDatamodule(LightningDataModule):
 
         self.num_workers = num_workers
         self.persistent_workers = persistent_workers
+        self.drop_last = drop_last
 
         if num_workers == "auto":
             self.num_workers = os.cpu_count() // torch.cuda.device_count()
@@ -147,6 +149,7 @@ class BaseDatamodule(LightningDataModule):
             batch_size=self.batch_size,
             shuffle=self.train_shuffle,
             num_workers=self.num_workers,
+            drop_last=self.drop_last,
             persistent_workers=self.persistent_workers and self.num_workers > 0,
             pin_memory=True,
         )
