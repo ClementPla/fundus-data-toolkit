@@ -145,9 +145,9 @@ class FundusSegmentationDatamodule(FundusDatamodule):
             randomcrop = [A.Compose([A.RandomCrop(*self.random_crop)], additional_targets={"roi": "mask"})]
 
         test_composer.add(
-            *self.pre_resize,
+            self.pre_resize,
             self.img_size_ops(),
-            *self.post_resize_pre_cache,
+            self.post_resize_pre_cache,
             CacheBullet(),
             *self.post_resize_post_cache,
             image_check,
@@ -155,11 +155,11 @@ class FundusSegmentationDatamodule(FundusDatamodule):
         )
 
         train_composer.add(
-            *self.pre_resize,
+            self.pre_resize,
             self.img_size_ops(),
-            *self.post_resize_post_cache,
+            self.post_resize_pre_cache,
             CacheBullet(),
-            *self.post_resize_post_cache,
+            self.post_resize_post_cache,
             *(self.data_aug_ops()),
             image_check,
             *randomcrop,

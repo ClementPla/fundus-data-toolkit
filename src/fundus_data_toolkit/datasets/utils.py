@@ -1,7 +1,5 @@
 from enum import Enum
 
-from nntools.dataset import nntools_wrapper
-
 
 class DatasetVariant(str, Enum):
     TRAIN: str = "train"

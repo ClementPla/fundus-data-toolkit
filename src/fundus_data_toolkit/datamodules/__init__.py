@@ -73,3 +73,9 @@ def register_paths(paths: Dict[str, str], task=Task.CLASSIFICATION):
             setting[s] = value
 
     setting.save_settings()
+
+
+class DataHookPosition(Enum):
+    PRE_RESIZE = "pre_resize"
+    POST_RESIZE_PRE_CACHE = "post_resize_pre_cache"
+    POST_RESIZE_POST_CACHE = "post_resize_post_cache"

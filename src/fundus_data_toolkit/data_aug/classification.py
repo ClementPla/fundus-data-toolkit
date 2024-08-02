@@ -21,6 +21,8 @@ class ClassificationDA(ABCMeta):
                 return cls.medium_transform()
             case DAType.HEAVY:
                 return cls.heavy_transform()
+            case DAType.SUPERHEAVY:
+                return cls.superheavy_transform()
             case DAType.NONE:
                 return None
             case _:
@@ -53,6 +55,46 @@ class ClassificationDA(ABCMeta):
                 *ClassificationDA.medium_transform(),
                 A.HueSaturationValue(p=0.5),
                 A.Blur(blur_limit=3, p=0.1),
+            ],
+            additional_targets={"roi": "mask"},
+        )
+
+    @staticmethod
+    def superheavy_transform() -> A.Compose:
+        return A.Compose(
+            [
+                A.OneOf(
+                    [
+                        A.HorizontalFlip(),
+                        A.VerticalFlip(),
+                    ],
+                    p=0.5,
+                ),
+                A.OneOf(
+                    [
+                        A.ColorJitter(),
+                        A.Equalize(),
+                    ],
+                    p=0.5,
+                ),
+                A.OneOf(
+                    [
+                        A.InvertImg(),
+                        A.Rotate(),
+                    ],
+                    p=0.5,
+                ),
+                A.OneOf(
+                    [
+                        A.Posterize(),
+                        A.Solarize(),
+                        A.ColorJitter(),
+                    ],
+                    p=0.5,
+                ),
+                A.Sharpen(),
+                A.Affine(shear=[-5, 5]),
+                A.RandomBrightnessContrast(),
             ],
             additional_targets={"roi": "mask"},
         )

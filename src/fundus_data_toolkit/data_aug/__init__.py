@@ -8,8 +8,9 @@ class DAType(Enum):
     LIGHT = "light"
     MEDIUM = "medium"
     HEAVY = "heavy"
+    SUPERHEAVY = "superheavy"
     NONE = None
-    
+
     @classmethod
     def _missing_(cls, value):
         value = value.lower()
