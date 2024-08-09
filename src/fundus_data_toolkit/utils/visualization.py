@@ -39,7 +39,9 @@ def get_mosaic(
     if batch_mask is not None:
         from torchvision.utils import draw_segmentation_masks
 
-        assert batch_img.shape[0] == batch_mask.shape[0], "Batch size of images and masks must be the same"
+        assert (
+            batch_img.shape[0] == batch_mask.shape[0]
+        ), "Batch size of images and masks must be the same"
 
         if batch_mask.ndim == 4 and batch_mask.shape[1] > 1:
             # Convert from probas to classes
@@ -49,7 +51,9 @@ def get_mosaic(
         grid_mask = F.one_hot(grid_mask, num_classes=5).permute((2, 0, 1))
         grid_mask[0] = 0  # Remove background
 
-        grid = draw_segmentation_masks(grid.cpu(), grid_mask.bool().cpu(), alpha=alpha, colors=colors)
+        grid = draw_segmentation_masks(
+            grid.cpu(), grid_mask.bool().cpu(), alpha=alpha, colors=colors
+        )
 
     return grid
 
@@ -61,6 +65,7 @@ def get_segmentation_mask_on_image(
     border_alpha=0.5,
     colors=None,
     kernel_size=3,
+    num_classes=5,
 ):
     from kornia.morphology import gradient
     from torchvision.utils import draw_segmentation_masks
@@ -76,13 +81,13 @@ def get_segmentation_mask_on_image(
 
     image = (image - image.min()) / (image.max() - image.min())
     image = (255 * image).to(torch.uint8)
-    if mask.ndim == 3 and mask.shape[0] == 5:
+    if mask.ndim == 3 and (mask.shape[0] == num_classes):
         mask = mask.unsqueeze(0)
 
     if mask.ndim == 4:
         mask = torch.argmax(mask, 1)
 
-    mask = F.one_hot(mask, num_classes=5).squeeze(0).permute((2, 0, 1))
+    mask = F.one_hot(mask, num_classes=num_classes).squeeze(0).permute((2, 0, 1))
     kernel = mask.new_ones((kernel_size, kernel_size))
     border = gradient(mask.unsqueeze(0), kernel).squeeze(0)
     border[0] = 0
@@ -94,7 +99,9 @@ def get_segmentation_mask_on_image(
         colors=colors,
     )
 
-    draw = draw_segmentation_masks(draw, border.to(torch.bool).cpu(), alpha=1 - border_alpha, colors="white")
+    draw = draw_segmentation_masks(
+        draw, border.to(torch.bool).cpu(), alpha=1 - border_alpha, colors="white"
+    )
     return draw
 
 
@@ -109,6 +116,7 @@ def plot_image_and_mask(
     labels=None,
     save_as=None,
     kernel_size=3,
+    num_classes=5,
 ):
     """Plot image and mask"""
 
@@ -120,6 +128,7 @@ def plot_image_and_mask(
             border_alpha=border_alpha,
             kernel_size=kernel_size,
             colors=colors,
+            num_classes=num_classes,
         )
         .permute((1, 2, 0))
         .cpu()
@@ -131,7 +140,9 @@ def plot_image_and_mask(
     if labels and colors:
         from matplotlib.patches import Patch
 
-        legend_elements = [Patch(facecolor=c, label=l) for l, c in zip(labels[1:], colors[1:])]
+        legend_elements = [
+            Patch(facecolor=c, label=l) for l, c in zip(labels[1:], colors[1:])
+        ]
         plt.gca().legend(handles=legend_elements, loc="upper right")
 
     if save_as:
