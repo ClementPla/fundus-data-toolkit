@@ -1,3 +1,4 @@
+from enum import Enum
 from pathlib import Path
 from typing import Tuple
 
@@ -217,3 +218,135 @@ def get_TJDR_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, in
             return dataset
         case DatasetVariant.VALID:
             raise ValueError("No explicit validation set for TJDR dataset")
+
+
+def get_APTOS_ODMAC_dataset(
+    root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs
+) -> SegmentationDataset:
+    root = Path(root)
+    img_root = root / "images"
+    mask_root = root / "mask"
+    masks = {
+        "Disk": mask_root / "Disk/",
+        "Macula": mask_root / "Macula/",
+    }
+
+    dataset = SegmentationDataset(
+        img_root=img_root,
+        mask_root=masks,
+        shape=img_size,
+        auto_pad=True,
+        auto_resize=True,
+        binarize_mask=True,
+        filling_strategy=NNOpt.FILL_UPSAMPLE,
+        id="APTOS_ODMAC",
+        **kwargs,
+    )
+
+    train, test = random_split(dataset, [0.8, 0.2], generator=torch.Generator().manual_seed(42))
+    match variant:
+        case DatasetVariant.TRAIN:
+            return train
+        case DatasetVariant.TEST:
+            return test
+        case DatasetVariant.VALID:
+            raise ValueError("No explicit validation set for APTOS_ODMAC dataset")
+
+
+def get_EYEPACS_ODMAC_dataset(
+    root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs
+) -> SegmentationDataset:
+    root = Path(root)
+    img_root = root / "images"
+    mask_root = root / "mask"
+    masks = {
+        "Disk": mask_root / "Disk/",
+        "Macula": mask_root / "Macula/",
+    }
+
+    dataset = SegmentationDataset(
+        img_root=img_root,
+        mask_root=masks,
+        shape=img_size,
+        auto_pad=True,
+        auto_resize=True,
+        binarize_mask=True,
+        filling_strategy=NNOpt.FILL_UPSAMPLE,
+        id="EYEPACS_ODMAC",
+        **kwargs,
+    )
+
+    train, test = random_split(dataset, [0.8, 0.2], generator=torch.Generator().manual_seed(42))
+    match variant:
+        case DatasetVariant.TRAIN:
+            return train
+        case DatasetVariant.TEST:
+            return test
+        case DatasetVariant.VALID:
+            raise ValueError("No explicit validation set for EYEPACS_ODMAC dataset")
+
+
+def get_IDRID_ODMAC_dataset(
+    root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs
+) -> SegmentationDataset:
+    root = Path(root)
+    img_root = root / "images"
+    mask_root = root / "mask"
+    masks = {
+        "Disk": mask_root / "Disk/",
+        "Macula": mask_root / "Macula/",
+    }
+
+    dataset = SegmentationDataset(
+        img_root=img_root,
+        mask_root=masks,
+        shape=img_size,
+        auto_pad=True,
+        auto_resize=True,
+        binarize_mask=True,
+        filling_strategy=NNOpt.FILL_UPSAMPLE,
+        id="IDRID_ODMAC",
+        **kwargs,
+    )
+
+    train, test = random_split(dataset, [0.8, 0.2], generator=torch.Generator().manual_seed(42))
+    match variant:
+        case DatasetVariant.TRAIN:
+            return train
+        case DatasetVariant.TEST:
+            return test
+        case DatasetVariant.VALID:
+            raise ValueError("No explicit validation set for IDRID_ODMAC dataset")
+
+
+def get_DDR_ODMAC_dataset(
+    root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs
+) -> SegmentationDataset:
+    root = Path(root)
+    img_root = root / "images"
+    mask_root = root / "mask"
+    masks = {
+        "Disk": mask_root / "Disk/",
+        "Macula": mask_root / "Macula/",
+    }
+
+    dataset = SegmentationDataset(
+        img_root=img_root,
+        mask_root=masks,
+        shape=img_size,
+        auto_pad=True,
+        auto_resize=True,
+        binarize_mask=True,
+        filling_strategy=NNOpt.FILL_UPSAMPLE,
+        id="DDR_ODMAC",
+        **kwargs,
+    )
+
+    train, test = random_split(dataset, [0.8, 0.2], generator=torch.Generator().manual_seed(42))
+    match variant:
+        case DatasetVariant.TRAIN:
+            return train
+        case DatasetVariant.TEST:
+            return test
+        case DatasetVariant.VALID:
+            raise ValueError("No explicit validation set for DDR_ODMAC dataset")

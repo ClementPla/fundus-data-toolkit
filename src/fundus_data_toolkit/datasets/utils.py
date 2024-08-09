@@ -23,6 +23,12 @@ class LesionIndex(Enum):
     MA = 4
 
 
+class ODMAcIndex(Enum):
+    BG = 0
+    DISK = 1
+    MACULA = 2
+
+
 TJDR_color_interpretation = {
     TJDR_COLORS.BG.value: LesionIndex.BG.value,
     TJDR_COLORS.CWS.value: LesionIndex.CWS.value,

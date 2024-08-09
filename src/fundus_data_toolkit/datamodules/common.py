@@ -105,6 +105,11 @@ class BaseDatamodule(LightningDataModule):
             else:
                 self.test.return_indices = True
 
+        if self.train and self.train.use_cache:
+            self.train.init_cache()
+        if self.val and self.val.use_cache:
+            self.val.init_cache()
+
     def set_classes_filter(self):
         if self.filter_classes is not None:
             if self.train:
