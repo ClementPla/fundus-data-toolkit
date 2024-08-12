@@ -26,10 +26,10 @@ def autofit_fundus_resolution(fundus, max_size, return_roi=False):
         return_roi (bool)
     """
     image, roi, margins = autocrop_fundus(fundus)
-    h, w = image.shape[:-1]
+    h, w = image.shape[:2]
     f = max_size / max((h, w))
     image = cv2.resize(image, fx=f, fy=f, dsize=None, interpolation=cv2.INTER_CUBIC)
-    h, w = image.shape[:-1]
+    h, w = image.shape[:2]
     padh = (max_size - h) // 2, (max_size - h) // 2 + ((max_size - h) % 2)
     padw = (max_size - w) // 2, (max_size - w) // 2 + ((max_size - w) % 2)
 
@@ -53,7 +53,7 @@ def autofit_fundus_resolution(fundus, max_size, return_roi=False):
 
 def autofit_mask_from_params(mask, reverse_params):
     margins_cropped = reverse_params["pad"]
-    h, w = mask.shape[:-1]
+    h, w = mask.shape[:2]
     mask = mask[
         margins_cropped[0] : h - margins_cropped[1],
         margins_cropped[2] : w - margins_cropped[3],
@@ -61,7 +61,7 @@ def autofit_mask_from_params(mask, reverse_params):
     f = 1 / reverse_params["resize"]
     mask = cv2.resize(mask, fx=f, fy=f, dsize=None)
     max_size = max(mask.shape)
-    h, w = mask.shape[:-1]
+    h, w = mask.shape[:2]
     padh = (max_size - h) // 2, (max_size - h) // 2 + ((max_size - h) % 2)
     padw = (max_size - w) // 2, (max_size - w) // 2 + ((max_size - w) % 2)
 
@@ -106,16 +106,17 @@ def reverse_autofit_tensor(tensor, **forward_params):
 
     tensor = tensor[:, crop[0] : crop[1], crop[2] : crop[3]]
     f = forward_params["resize"]
-    h, w = tensor.shape[-2:]
+    h, w = tensor.shape[1:]
     new_h, new_w = round(h * f), round(w * f)
     tensor = F.interpolate(
         tensor.unsqueeze(0),
         size=(new_h, new_w),
         mode="bilinear",
+        align_corners=True,
         recompute_scale_factor=False,
     ).squeeze(0)
-    pad = forward_params["pad"]
-    tensor = F.pad(tensor, pad=pad[::-1])
+    pad_t, pad_b, pad_l, pad_r = forward_params["pad"]
+    tensor = F.pad(tensor, pad=(pad_l, pad_r, pad_t, pad_b), mode="constant", value=0)
     return tensor
 
 
@@ -140,7 +141,6 @@ def autocrop_fundus(fundus):
     fundus_croppped = fundus[y_range[0] : y_range[1], x_range[0] : x_range[1]]
     roi_cropped = roi[y_range[0] : y_range[1], x_range[0] : x_range[1]]
     margins_removed = (y_range[0], h - y_range[1], x_range[0], w - x_range[1])
-
     return fundus_croppped, roi_cropped, margins_removed
 
 

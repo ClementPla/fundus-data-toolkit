@@ -39,9 +39,7 @@ def get_mosaic(
     if batch_mask is not None:
         from torchvision.utils import draw_segmentation_masks
 
-        assert (
-            batch_img.shape[0] == batch_mask.shape[0]
-        ), "Batch size of images and masks must be the same"
+        assert batch_img.shape[0] == batch_mask.shape[0], "Batch size of images and masks must be the same"
 
         if batch_mask.ndim == 4 and batch_mask.shape[1] > 1:
             # Convert from probas to classes
@@ -51,9 +49,7 @@ def get_mosaic(
         grid_mask = F.one_hot(grid_mask, num_classes=5).permute((2, 0, 1))
         grid_mask[0] = 0  # Remove background
 
-        grid = draw_segmentation_masks(
-            grid.cpu(), grid_mask.bool().cpu(), alpha=alpha, colors=colors
-        )
+        grid = draw_segmentation_masks(grid.cpu(), grid_mask.bool().cpu(), alpha=alpha, colors=colors)
 
     return grid
 
@@ -99,9 +95,7 @@ def get_segmentation_mask_on_image(
         colors=colors,
     )
 
-    draw = draw_segmentation_masks(
-        draw, border.to(torch.bool).cpu(), alpha=1 - border_alpha, colors="white"
-    )
+    draw = draw_segmentation_masks(draw, border.to(torch.bool).cpu(), alpha=1 - border_alpha, colors="white")
     return draw
 
 
@@ -140,9 +134,7 @@ def plot_image_and_mask(
     if labels and colors:
         from matplotlib.patches import Patch
 
-        legend_elements = [
-            Patch(facecolor=c, label=l) for l, c in zip(labels[1:], colors[1:])
-        ]
+        legend_elements = [Patch(facecolor=c, label=l) for l, c in zip(labels[1:], colors[1:])]
         plt.gca().legend(handles=legend_elements, loc="upper right")
 
     if save_as:
