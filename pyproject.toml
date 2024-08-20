@@ -36,3 +36,6 @@ line-length = 120
 select = ["E", "F", "I", "RUF", "TCH"]
 fixable = ["I", "RUF100", "TCH"]
 fix = true
+
+[tool.hatch.metadata]
+allow-direct-references = true

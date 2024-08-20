@@ -33,6 +33,7 @@ class BaseDatamodule(LightningDataModule):
         persistent_workers: bool = True,
         eval_batch_size: Optional[int] = None,
         drop_last: bool = False,
+        adjust_batch_size_to_gpu: bool = True,
     ):
         super().__init__()
         if isinstance(img_size, int):
@@ -41,7 +42,10 @@ class BaseDatamodule(LightningDataModule):
         self.img_size = img_size
         self.valid_size = valid_size
 
-        self.batch_size = batch_size // max(1, torch.cuda.device_count())
+        if adjust_batch_size_to_gpu:
+            self.batch_size = batch_size // max(1, torch.cuda.device_count())
+        else:
+            self.batch_size = batch_size
 
         if eval_batch_size is None:
             self.eval_batch_size = batch_size
@@ -127,7 +131,9 @@ class BaseDatamodule(LightningDataModule):
             val_length = self.valid_size
             train_length = len(self.train) - val_length
             self.train, self.val = random_split(
-                self.train, [train_length, val_length], generator=torch.Generator().manual_seed(42)
+                self.train,
+                [train_length, val_length],
+                generator=torch.Generator().manual_seed(42),
             )
             self.train.id = self.train.id.replace("_split_0", "_split_train")
             self.val.id = self.val.id.replace("_split_1", "_split_val")
@@ -167,7 +173,9 @@ class BaseDatamodule(LightningDataModule):
             batch_size=self.batch_size,
             shuffle=shuffle,
             num_workers=self.num_workers,
-            persistent_workers=self.persistent_workers and persistent_workers and self.num_workers > 0,
+            persistent_workers=self.persistent_workers
+            and persistent_workers
+            and self.num_workers > 0,
             pin_memory=True,
         )
 
@@ -262,7 +270,9 @@ class FundusDatamodule(BaseDatamodule):
             val_length = self.valid_size
             train_length = len(self.train) - val_length
             self.train, self.val = random_split(
-                self.train, [train_length, val_length], generator=torch.Generator().manual_seed(42)
+                self.train,
+                [train_length, val_length],
+                generator=torch.Generator().manual_seed(42),
             )
             self.train.id = self.train.id.replace("_split_0", "_split_train")
             self.val.id = self.val.id.replace("_split_1", "_split_val")
@@ -312,7 +322,11 @@ class MergedDatamodule(BaseDatamodule):
         assert len(num_workers) == 1, "All datamodules must have the same num_workers"
         assert len(batch_size) == 1, "All datamodules must have the same batch_size"
 
-        super().__init__(img_size=datamodules[0].img_size, batch_size=datamodules[0].batch_size)
+        super().__init__(
+            img_size=datamodules[0].img_size,
+            batch_size=datamodules[0].batch_size,
+            adjust_batch_size_to_gpu=False,
+        )
         self.datamodules = datamodules
         self.separate_test_sets = separate_test_sets
 
@@ -326,17 +340,23 @@ class MergedDatamodule(BaseDatamodule):
 
     @property
     def train(self):
-        return concat_datasets_if_needed([dm.train for dm in self.datamodules if dm.train is not None])
+        return concat_datasets_if_needed(
+            [dm.train for dm in self.datamodules if dm.train is not None]
+        )
 
     @property
     def val(self):
-        return concat_datasets_if_needed([dm.val for dm in self.datamodules if dm.val is not None])
+        return concat_datasets_if_needed(
+            [dm.val for dm in self.datamodules if dm.val is not None]
+        )
 
     @property
     def test(self):
         if self.separate_test_sets:
             return [dm.test for dm in self.datamodules if dm.test is not None]
-        return concat_datasets_if_needed([dm.test for dm in self.datamodules if dm.test is not None])
+        return concat_datasets_if_needed(
+            [dm.test for dm in self.datamodules if dm.test is not None]
+        )
 
     def add_target(self, additional_target):
         for dm in self.datamodules:
