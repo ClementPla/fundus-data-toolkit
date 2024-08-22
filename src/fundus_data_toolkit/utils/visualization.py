@@ -85,7 +85,7 @@ def get_segmentation_mask_on_image(
 
     if mask.ndim == 4:
         mask = torch.argmax(mask, 1)
-
+    mask = F.one_hot(mask, num_classes=num_classes).squeeze(0).permute((2, 0, 1))
     mask[0] = 0  # Remove background
     draw = draw_segmentation_masks(
         image.to(torch.uint8).cpu(),
@@ -96,7 +96,6 @@ def get_segmentation_mask_on_image(
     if not no_border:
         from kornia.morphology import gradient
 
-        mask = F.one_hot(mask, num_classes=num_classes).squeeze(0).permute((2, 0, 1))
         kernel = mask.new_ones((border_width, border_width))
         border = gradient(mask.unsqueeze(0), kernel).squeeze(0)
         border[0] = 0
