@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn.functional as F
+from torchvision.utils import draw_segmentation_masks
+
 from fundus_data_toolkit.const import DEFAULT_COLORS
 
 
@@ -60,11 +62,12 @@ def get_segmentation_mask_on_image(
     alpha=0.5,
     border_alpha=0.5,
     colors=None,
-    kernel_size=3,
+    border_width=3,
     num_classes=5,
+    no_border=False,
 ):
-    from kornia.morphology import gradient
-    from torchvision.utils import draw_segmentation_masks
+    if border_width == 0 or border_alpha == 0:
+        no_border = True
 
     if isinstance(image, np.ndarray):
         image = torch.from_numpy(image)
@@ -83,10 +86,6 @@ def get_segmentation_mask_on_image(
     if mask.ndim == 4:
         mask = torch.argmax(mask, 1)
 
-    mask = F.one_hot(mask, num_classes=num_classes).squeeze(0).permute((2, 0, 1))
-    kernel = mask.new_ones((kernel_size, kernel_size))
-    border = gradient(mask.unsqueeze(0), kernel).squeeze(0)
-    border[0] = 0
     mask[0] = 0  # Remove background
     draw = draw_segmentation_masks(
         image.to(torch.uint8).cpu(),
@@ -94,8 +93,14 @@ def get_segmentation_mask_on_image(
         alpha=alpha,
         colors=colors,
     )
+    if not no_border:
+        from kornia.morphology import gradient
 
-    draw = draw_segmentation_masks(draw, border.to(torch.bool).cpu(), alpha=1 - border_alpha, colors="white")
+        mask = F.one_hot(mask, num_classes=num_classes).squeeze(0).permute((2, 0, 1))
+        kernel = mask.new_ones((border_width, border_width))
+        border = gradient(mask.unsqueeze(0), kernel).squeeze(0)
+        border[0] = 0
+        draw = draw_segmentation_masks(draw, border.to(torch.bool).cpu(), alpha=1 - border_alpha, colors="white")
     return draw
 
 
@@ -109,8 +114,9 @@ def plot_image_and_mask(
     figsize=(10, 10),
     labels=None,
     save_as=None,
-    kernel_size=3,
+    border_width=3,
     num_classes=5,
+    no_border=False,
 ):
     """Plot image and mask"""
 
@@ -120,9 +126,10 @@ def plot_image_and_mask(
             mask,
             alpha,
             border_alpha=border_alpha,
-            kernel_size=kernel_size,
+            border_width=border_width,
             colors=colors,
             num_classes=num_classes,
+            no_border=no_border,
         )
         .permute((1, 2, 0))
         .cpu()
