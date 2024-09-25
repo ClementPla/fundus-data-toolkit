@@ -82,7 +82,7 @@ def get_DDR_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, int
 
 
 def get_MESSIDOR_dataset(
-    root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs
+    root: str, variant: DatasetVariant, img_size: Tuple[int, int], only_lesions: bool = True, **kwargs
 ) -> SegmentationDataset:
     if variant == DatasetVariant.VALID:
         raise ValueError("No explicit validation set for MESSIDOR dataset")
@@ -91,13 +91,16 @@ def get_MESSIDOR_dataset(
 
     img_root = root / variant.value / "fundus/"
     mask_root = root / variant.value
-
     masks = {
         "Exudates": mask_root / "exudates/",
         "Cotton_Wool_Spot": mask_root / "cottonWoolSpots/",
         "Hemorrhages": mask_root / "hemorrhages/",
         "Microaneurysms": mask_root / "microaneurysms/",
     }
+    if not only_lesions:
+        masks["Vessels"] = mask_root / "vessels/"
+        masks["OpticDisc"] = mask_root / "opticDisc/"
+        masks["OpticCup"] = mask_root / "opticCup/"
 
     dataset = SegmentationDataset(
         img_root=img_root,
@@ -117,7 +120,7 @@ def get_MESSIDOR_dataset(
 def get_MAPLESDR_dataset(
     root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs
 ) -> SegmentationDataset:
-    return get_MESSIDOR_dataset(root, variant, img_size, **kwargs)
+    return get_MESSIDOR_dataset(root, variant, img_size, only_lesions=False, **kwargs)
 
 
 def get_FGADR_dataset(root: str, variant: DatasetVariant, img_size: Tuple[int, int], **kwargs) -> SegmentationDataset:

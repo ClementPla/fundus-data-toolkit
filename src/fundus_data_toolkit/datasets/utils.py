@@ -21,6 +21,8 @@ class LesionIndex(Enum):
     EX = 2
     HEM = 3
     MA = 4
+    IRMA = 5
+    NEO = 6
 
 
 class ODMAcIndex(Enum):

@@ -48,20 +48,31 @@ def process_masks_multiclass(
     FibrousProliferation=None,
     IRMA=None,
     Neovascularization=None,
+    Vessels=None,
+    OpticDisc=None,
+    OpticCup=None,
 ):
-    if (
-        PreretinalHemorrhages is not None
-        and RetinalHemorrhages is not None
-        and VitreousHemorrhages is not None
-    ):
+    if PreretinalHemorrhages is not None and RetinalHemorrhages is not None and VitreousHemorrhages is not None:
         Hemorrhages = np.logical_or(PreretinalHemorrhages, RetinalHemorrhages)
         Hemorrhages = np.logical_or(Hemorrhages, VitreousHemorrhages)
 
     mask = np.zeros_like(Exudates, dtype=np.uint8)
+    if OpticDisc is not None:
+        mask[OpticDisc != 0] = ODMAcIndex.DISK.value + 6
+    if OpticCup is not None:
+        mask[OpticCup != 0] = ODMAcIndex.MACULA.value + 6
+    if Vessels is not None:
+        mask[Vessels != 0] = 9
+
     mask[Cotton_Wool_Spot != 0] = LesionIndex.CWS.value
     mask[Exudates != 0] = LesionIndex.EX.value
     mask[Hemorrhages != 0] = LesionIndex.HEM.value
     mask[Microaneurysms != 0] = LesionIndex.MA.value
+    if IRMA:
+        mask[IRMA != 0] = LesionIndex.IRMA.value
+    if Neovascularization:
+        mask[Neovascularization != 0] = LesionIndex.NEO.value
+
     return {"mask": mask}
 
 
@@ -78,11 +89,7 @@ def process_masks_multilabel(
     IRMA=None,
     Neovascularization=None,
 ):
-    if (
-        PreretinalHemorrhages is not None
-        and RetinalHemorrhages is not None
-        and VitreousHemorrhages is not None
-    ):
+    if PreretinalHemorrhages is not None and RetinalHemorrhages is not None and VitreousHemorrhages is not None:
         Hemorrhages = np.logical_or(PreretinalHemorrhages, RetinalHemorrhages)
         Hemorrhages = np.logical_or(Hemorrhages, VitreousHemorrhages)
 
@@ -144,9 +151,7 @@ class FundusSegmentationDatamodule(FundusDatamodule):
         process_gt = self.get_gt_process_fn()
 
         if process_gt is not None:
-            self.set_data_pipeline_hook(
-                process_gt, position=DataHookPosition.PRE_RESIZE
-            )
+            self.set_data_pipeline_hook(process_gt, position=DataHookPosition.PRE_RESIZE)
 
     def setup(self, stage: str):
         if stage == "validate":
@@ -166,9 +171,7 @@ class FundusSegmentationDatamodule(FundusDatamodule):
             train_composer.add(fundus_roi)
             test_composer.add(fundus_roi)
         else:
-            autocrop = (
-                fundus_precise_autocrop if self.precise_autocrop else fundus_autocrop
-            )
+            autocrop = fundus_precise_autocrop if self.precise_autocrop else fundus_autocrop
             train_composer.add(autocrop)
             test_composer.add(autocrop)
 
@@ -388,6 +391,28 @@ class TJDRDataModule_s(FundusLesionsDatamodule):
 
     def get_gt_process_fn(self):
         return None
+
+
+class MAPLESDRDataModule_s(FundusLesionsDatamodule):
+    def setup(self, stage: str):
+        match stage:
+            case "fit" | "validate":
+                self.train = get_MESSIDOR_dataset(
+                    self.data_dir,
+                    DatasetVariant.TRAIN,
+                    self.img_size,
+                    only_lesions=False,
+                    **self.dataset_kwargs,
+                )
+            case "test":
+                self.test = get_MESSIDOR_dataset(
+                    self.data_dir,
+                    DatasetVariant.TEST,
+                    self.img_size,
+                    only_lesions=False,
+                    **self.dataset_kwargs,
+                )
+        super().setup(stage)
 
 
 class IDRIDODMACDataModule(FundusODMacDatamodule):
