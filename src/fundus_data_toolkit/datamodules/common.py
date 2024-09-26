@@ -152,13 +152,13 @@ class BaseDatamodule(LightningDataModule):
 
         return self.train.get_class_count()
 
-    def train_dataloader(self) -> DataLoader:
+    def train_dataloader(self, shuffle=True) -> DataLoader:
         if self.train is None:
             raise ValueError("Train dataset is not created yet.")
         return DataLoader(
             self.train,
             batch_size=self.batch_size,
-            shuffle=self.train_shuffle,
+            shuffle=self.train_shuffle and shuffle,
             num_workers=self.num_workers,
             drop_last=self.drop_last,
             persistent_workers=self.persistent_workers and self.num_workers > 0,
@@ -173,9 +173,7 @@ class BaseDatamodule(LightningDataModule):
             batch_size=self.batch_size,
             shuffle=shuffle,
             num_workers=self.num_workers,
-            persistent_workers=self.persistent_workers
-            and persistent_workers
-            and self.num_workers > 0,
+            persistent_workers=self.persistent_workers and persistent_workers and self.num_workers > 0,
             pin_memory=True,
         )
 
@@ -340,23 +338,17 @@ class MergedDatamodule(BaseDatamodule):
 
     @property
     def train(self):
-        return concat_datasets_if_needed(
-            [dm.train for dm in self.datamodules if dm.train is not None]
-        )
+        return concat_datasets_if_needed([dm.train for dm in self.datamodules if dm.train is not None])
 
     @property
     def val(self):
-        return concat_datasets_if_needed(
-            [dm.val for dm in self.datamodules if dm.val is not None]
-        )
+        return concat_datasets_if_needed([dm.val for dm in self.datamodules if dm.val is not None])
 
     @property
     def test(self):
         if self.separate_test_sets:
             return [dm.test for dm in self.datamodules if dm.test is not None]
-        return concat_datasets_if_needed(
-            [dm.test for dm in self.datamodules if dm.test is not None]
-        )
+        return concat_datasets_if_needed([dm.test for dm in self.datamodules if dm.test is not None])
 
     def add_target(self, additional_target):
         for dm in self.datamodules:
