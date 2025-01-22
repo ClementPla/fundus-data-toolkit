@@ -1,7 +1,26 @@
 import warnings
-from enum import Enum
 from typing import Dict
 
+from fundus_data_toolkit.const import Task
+from fundus_data_toolkit.datamodules.classification import (
+    AptosDataModule,
+    DDRDataModule,
+    EyePACSDataModule,
+    IDRiDDataModule,
+)
+from fundus_data_toolkit.datamodules.segmentation import (
+    APTOSODMACDataModule,
+    DDRDataModule_s,
+    DDRODMACDataModule,
+    EYEPACSODMACDataModule,
+    FGADRDataModule_s,
+    IDRiDDataModule_s,
+    IDRIDODMACDataModule,
+    MAPLESDRDataModule_s,
+    MESSIDORDataModule_s,
+    RETLESDataModule_s,
+    TJDRDataModule_s,
+)
 from fundus_data_toolkit.utils import usersettings
 from fundus_data_toolkit.utils.collec import AttrDict
 
@@ -26,19 +45,6 @@ else:
     warnings.warn(
         "No settings found, please run `register_paths` to set paths or don't use CLASSIF_PATHS or SEG_PATHS."
     )
-
-
-class Task(Enum):
-    CLASSIFICATION: str = "classification"
-    SEGMENTATION: str = "segmentation"
-
-    @classmethod
-    def _missing_(cls, value):
-        value = value.lower()
-        for member in cls:
-            if member.lower() == value:
-                return member
-        return None
 
 
 def register_paths(paths: Dict[str, str], task=Task.CLASSIFICATION):
@@ -73,9 +79,3 @@ def register_paths(paths: Dict[str, str], task=Task.CLASSIFICATION):
             setting[s] = value
 
     setting.save_settings()
-
-
-class DataHookPosition(Enum):
-    PRE_RESIZE = "pre_resize"
-    POST_RESIZE_PRE_CACHE = "post_resize_pre_cache"
-    POST_RESIZE_POST_CACHE = "post_resize_post_cache"

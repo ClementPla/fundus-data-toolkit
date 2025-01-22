@@ -1,6 +1,5 @@
 import os
 from abc import abstractmethod
-from enum import Enum
 from typing import TYPE_CHECKING, List, Optional, Union
 
 import albumentations as A
@@ -20,7 +19,7 @@ from fundus_data_toolkit.data_aug import DAType
 if TYPE_CHECKING:
     import nntools.dataset as D
 
-from fundus_data_toolkit.datamodules import DataHookPosition
+from fundus_data_toolkit.const import DataHookPosition
 
 
 class BaseDatamodule(LightningDataModule):
@@ -46,7 +45,7 @@ class BaseDatamodule(LightningDataModule):
             self.batch_size = batch_size // max(1, torch.cuda.device_count())
         else:
             self.batch_size = batch_size
-
+        self.batch_size = max(1, self.batch_size)
         if eval_batch_size is None:
             self.eval_batch_size = batch_size
         else:
@@ -204,9 +203,9 @@ class BaseDatamodule(LightningDataModule):
         )
 
     def add_target(self, additional_target):
-        assert (
-            self.train is not None or self.val is not None or self.test is not None
-        ), "No dataset is created yet, please call setup all."
+        assert self.train is not None or self.val is not None or self.test is not None, (
+            "No dataset is created yet, please call setup all."
+        )
         if self.train:
             for op in self.train.composer.ops:
                 if isinstance(op["f"], A.Compose):
@@ -278,13 +277,13 @@ class FundusDatamodule(BaseDatamodule):
     def img_size_ops(self) -> A.Compose:
         return A.Compose(
             [
-                A.LongestMaxSize(max_size=self.img_size, always_apply=True),
+                A.LongestMaxSize(max_size=self.img_size),
                 A.PadIfNeeded(
                     min_height=self.img_size[0],
                     min_width=self.img_size[1],
-                    always_apply=True,
                     border_mode=cv2.BORDER_CONSTANT,
-                    value=0,
+                    fill=0,
+                    fill_mask=0,
                 ),
             ],
             strict=False,
@@ -294,7 +293,7 @@ class FundusDatamodule(BaseDatamodule):
     def normalize_and_cast_op(self):
         mean, std = get_normalization()
         return A.Compose(
-            [A.Normalize(mean=mean, std=std, always_apply=True), ToTensorV2()],
+            [A.Normalize(mean=mean, std=std), ToTensorV2()],
             additional_targets={"roi": "mask"},
             strict=False,
         )
@@ -308,9 +307,9 @@ class MergedDatamodule(BaseDatamodule):
         if len(datamodules) == 1:
             return datamodules[0]
 
-        assert all(
-            isinstance(dm, FundusDatamodule) for dm in datamodules
-        ), "All datamodules must be of type FundusDatamodule"
+        assert all(isinstance(dm, FundusDatamodule) for dm in datamodules), (
+            "All datamodules must be of type FundusDatamodule"
+        )
 
         img_size = set([tuple(dm.img_size) for dm in datamodules])
         num_workers = set([dm.num_workers for dm in datamodules])

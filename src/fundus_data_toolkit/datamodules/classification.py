@@ -11,7 +11,11 @@ from fundus_data_toolkit.datasets.classification import (
     get_EyePACS_dataset,
     get_IDRiD_dataset,
 )
-from fundus_data_toolkit.utils.image_processing import fundus_autocrop, fundus_precise_autocrop, image_check
+from fundus_data_toolkit.utils.image_processing import (
+    fundus_autocrop,
+    fundus_precise_autocrop,
+    image_check,
+)
 
 
 class FundusClassificationDatamodule(FundusDatamodule):
@@ -55,7 +59,9 @@ class FundusClassificationDatamodule(FundusDatamodule):
         train_composer = Composition()
 
         if not self.skip_autocrop:
-            autocrop = fundus_precise_autocrop if self.precise_autocrop else fundus_autocrop
+            autocrop = (
+                fundus_precise_autocrop if self.precise_autocrop else fundus_autocrop
+            )
             train_composer.add(autocrop)
             test_composer.add(autocrop)
 
@@ -130,34 +136,65 @@ class DDRDataModule(FundusClassificationDatamodule):
 
     def setup(self, stage: str):
         if stage == "fit":
-            self.train = get_DDR_dataset(self.data_dir, DatasetVariant.TRAIN, self.img_size, **self.dataset_kwargs)
+            self.train = get_DDR_dataset(
+                self.data_dir,
+                DatasetVariant.TRAIN,
+                self.img_size,
+                **self.dataset_kwargs,
+            )
         if stage == "validate":
-            self.val = get_DDR_dataset(self.data_dir, DatasetVariant.VALID, self.img_size, **self.dataset_kwargs)
+            self.val = get_DDR_dataset(
+                self.data_dir,
+                DatasetVariant.VALID,
+                self.img_size,
+                **self.dataset_kwargs,
+            )
         if stage == "test":
-            self.test = get_DDR_dataset(self.data_dir, DatasetVariant.TEST, self.img_size, **self.dataset_kwargs)
+            self.test = get_DDR_dataset(
+                self.data_dir, DatasetVariant.TEST, self.img_size, **self.dataset_kwargs
+            )
         super().setup(stage)
 
 
 class IDRiDDataModule(FundusClassificationDatamodule):
     def setup(self, stage: str):
         if stage in ["fit", "validate"]:
-            self.train = get_IDRiD_dataset(self.data_dir, DatasetVariant.TRAIN, self.img_size, **self.dataset_kwargs)
+            self.train = get_IDRiD_dataset(
+                self.data_dir,
+                DatasetVariant.TRAIN,
+                self.img_size,
+                **self.dataset_kwargs,
+            )
         if stage == "test":
-            self.test = get_IDRiD_dataset(self.data_dir, DatasetVariant.TEST, self.img_size, **self.dataset_kwargs)
+            self.test = get_IDRiD_dataset(
+                self.data_dir, DatasetVariant.TEST, self.img_size, **self.dataset_kwargs
+            )
         super().setup(stage)
 
 
 class EyePACSDataModule(FundusClassificationDatamodule):
     def setup(self, stage: str) -> None:
         if stage in ["fit", "validate"]:
-            self.train = get_EyePACS_dataset(self.data_dir, DatasetVariant.TRAIN, self.img_size, **self.dataset_kwargs)
+            self.train = get_EyePACS_dataset(
+                self.data_dir,
+                DatasetVariant.TRAIN,
+                self.img_size,
+                **self.dataset_kwargs,
+            )
         if stage == "test":
-            self.test = get_EyePACS_dataset(self.data_dir, DatasetVariant.TEST, self.img_size, **self.dataset_kwargs)
+            self.test = get_EyePACS_dataset(
+                self.data_dir, DatasetVariant.TEST, self.img_size, **self.dataset_kwargs
+            )
         super().setup(stage)
 
 
 class AptosDataModule(FundusClassificationDatamodule):
     def setup(self, stage: str) -> None:
         if stage in ["fit", "validate"]:
-            self.train = get_Aptos_dataset(self.data_dir, DatasetVariant.TRAIN, self.img_size, **self.dataset_kwargs)
+            self.train = get_Aptos_dataset(
+                self.data_dir,
+                DatasetVariant.TRAIN,
+                self.img_size,
+                **self.dataset_kwargs,
+            )
         super().setup(stage)

@@ -6,9 +6,9 @@ import albumentations as A
 import numpy as np
 from nntools.dataset.composer import CacheBullet, Composition, nntools_wrapper
 
+from fundus_data_toolkit.const import DataHookPosition
 from fundus_data_toolkit.data_aug import DAType
 from fundus_data_toolkit.data_aug.segmentation import SegmentationDA
-from fundus_data_toolkit.datamodules import DataHookPosition
 from fundus_data_toolkit.datamodules.common import FundusDatamodule
 from fundus_data_toolkit.datasets.segmentation import (
     get_APTOS_ODMAC_dataset,
